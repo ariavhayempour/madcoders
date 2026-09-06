@@ -12,19 +12,19 @@ const emailErrId = `rsvp-email-err-${meeting}`;
 const statusId = `rsvp-status-${meeting}`;
 const dialogId = `rsvp-dialog-${meeting}`;
 
-const field = 'h-10 w-full rounded-lg border border-input bg-background px-3 text-base md:text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
+const field = 'h-10 w-full rounded-md border border-editor-line bg-editor px-3 font-mono text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-cardinal focus-visible:ring-[3px] focus-visible:ring-cardinal/30 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
 ---
-<form class="rsvp mt-4 grid gap-4 rounded-2xl border border-border bg-card p-6" method="post" action="/api/rsvp" novalidate data-rsvp data-meeting={meeting}>
-  <p class="font-serif text-lg font-semibold">RSVP for this meeting</p>
+<form class="rsvp mt-4 grid gap-4 rounded-lg border border-editor-line bg-editor-2 p-6" method="post" action="/api/rsvp" novalidate data-rsvp data-meeting={meeting}>
+  <p class="font-mono text-sm font-semibold text-cardinal-700">// RSVP for this meeting</p>
 
   <div class="grid gap-1.5">
-    <label for={nameId} class="text-sm font-medium">Name</label>
+    <label for={nameId} class="font-mono text-xs font-medium text-editor-text-dim">name</label>
     <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={field} />
     <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
   </div>
 
   <div class="grid gap-1.5">
-    <label for={emailId} class="text-sm font-medium">Email (@wisc.edu)</label>
+    <label for={emailId} class="font-mono text-xs font-medium text-editor-text-dim">email (@wisc.edu)</label>
     <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={field} />
     <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
   </div>
@@ -35,15 +35,15 @@ const field = 'h-10 w-full rounded-lg border border-input bg-background px-3 tex
     <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
   </div>
 
-  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-progress disabled:opacity-60">RSVP</button>
+  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-md bg-cardinal px-5 font-sans text-sm font-semibold text-primary-foreground transition-colors hover:bg-cardinal-700 disabled:cursor-progress disabled:opacity-60">RSVP</button>
 
   <p class="rsvp-status m-0 text-sm font-medium" id={statusId} role="status" aria-live="polite" data-status hidden></p>
 
-  <div class="fixed inset-0 z-50 grid place-items-center bg-black/50 p-6" id={dialogId} role="dialog" aria-modal="true" aria-labelledby={`${dialogId}-title`} data-modal hidden>
-    <div class="max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
-      <h2 id={`${dialogId}-title`} class="font-serif text-xl font-bold">You're already registered</h2>
-      <p class="mt-2 text-muted-foreground">This email has already RSVP'd for this meeting.</p>
-      <button type="button" data-modal-close class="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">Close</button>
+  <div class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-6" id={dialogId} role="dialog" aria-modal="true" aria-labelledby={`${dialogId}-title`} data-modal hidden>
+    <div class="max-w-sm rounded-lg border border-editor-line bg-editor-2 p-6 shadow-xl">
+      <h2 id={`${dialogId}-title`} class="text-xl font-bold text-foreground">You're already registered</h2>
+      <p class="mt-2 text-editor-text-dim">This email has already RSVP'd for this meeting.</p>
+      <button type="button" data-modal-close class="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-cardinal px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-cardinal-700">Close</button>
     </div>
   </div>
 </form>
@@ -174,6 +174,6 @@ const field = 'h-10 w-full rounded-lg border border-input bg-background px-3 tex
 </script>
 
 <style>
-  .rsvp-status[data-tone='ok'] { color: var(--cardinal-700); }
+  .rsvp-status[data-tone='ok'] { color: var(--success); }
   .rsvp-status[data-tone='error'] { color: var(--destructive); }
 </style>

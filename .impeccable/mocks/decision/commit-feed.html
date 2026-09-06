@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>MadCoders — Commit Feed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0d1117; --ink-2:#161b22; --ink-3:#21262d;
+    --paper:#ffffff; --paper-2:#f6f8fa;
+    --border:#d0d7de; --border-dim:#e8ebef;
+    --text:#1f2328; --text-dim:#59636e; --text-faint:#8b949e;
+    --add:#1a7f37; --add-bg:#dafbe1;
+    --del:#cf222e; --del-bg:#ffebe9;
+    --cardinal:#c5272a; --cardinal-deep:#9c1f22; --cardinal-tint:#fdeeee;
+    --link:#0969da;
+    --mono:"JetBrains Mono", ui-monospace, monospace;
+    --sans:"Inter", ui-sans-serif, system-ui, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{background:var(--paper);}
+  body{background:var(--paper); color:var(--text); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.5;}
+  a{color:inherit;}
+
+  /* ===== Top bar ===== */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 32px; border-bottom:1px solid var(--border-dim);
+    position:sticky; top:0; background:rgba(255,255,255,0.92); backdrop-filter:blur(8px); z-index:20;
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{
+    width:28px; height:28px; border-radius:6px; background:var(--ink);
+    display:grid; place-items:center; color:#fff; font-family:var(--mono); font-weight:700; font-size:13px;
+  }
+  .brand-name{font-weight:700; font-size:15px;}
+  .branch-pill{
+    display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px;
+    background:var(--paper-2); border:1px solid var(--border); border-radius:6px;
+    padding:5px 10px; color:var(--text-dim); margin-left:14px;
+  }
+  .branch-pill svg{width:12px; height:12px;}
+  .navlinks{display:flex; gap:4px; font-size:13px; font-weight:500;}
+  .navlinks a{text-decoration:none; padding:6px 12px; border-radius:6px; color:var(--text-dim);}
+  .navlinks a:hover{background:var(--paper-2); color:var(--text);}
+  .nav-cta{
+    font-size:13px; font-weight:600; color:#fff; background:var(--cardinal);
+    padding:7px 16px; border-radius:6px; text-decoration:none;
+  }
+  .nav-cta:hover{background:var(--cardinal-deep);}
+
+  /* ===== Hero: repo header style ===== */
+  .repo-header{padding:40px 32px 0; max-width:900px; margin:0 auto;}
+  .repo-path{font-family:var(--mono); font-size:13px; color:var(--text-faint); margin-bottom:10px;}
+  .repo-path .sep{margin:0 4px;}
+  h1{font-size:clamp(2.2rem,4.6vw,3.2rem); font-weight:800; letter-spacing:-0.03em; line-height:1.1;}
+  .repo-desc{margin-top:14px; max-width:60ch; font-size:1.08rem; color:var(--text-dim);}
+  .repo-meta{display:flex; gap:22px; margin-top:20px; font-size:13px; color:var(--text-dim); flex-wrap:wrap;}
+  .repo-meta span{display:flex; align-items:center; gap:6px;}
+  .repo-meta .dot{width:9px; height:9px; border-radius:50%; background:var(--cardinal); display:inline-block;}
+  .hero-actions{display:flex; gap:10px; margin-top:26px;}
+  .btn-primary{
+    font-size:13.5px; font-weight:600; color:#fff; background:var(--cardinal);
+    padding:9px 18px; border-radius:6px; text-decoration:none; border:1px solid var(--cardinal);
+  }
+  .btn-primary:hover{background:var(--cardinal-deep);}
+  .btn-secondary{
+    font-size:13.5px; font-weight:600; color:var(--text); background:var(--paper);
+    border:1px solid var(--border); padding:8px 18px; border-radius:6px; text-decoration:none;
+  }
+  .btn-secondary:hover{background:var(--paper-2);}
+
+  /* ===== Stats bar ===== */
+  .stats{
+    display:flex; gap:0; max-width:900px; margin:32px auto 0; padding:0 32px;
+    border-top:1px solid var(--border-dim);
+  }
+  .stat{flex:1; padding:20px 20px 20px 0; border-right:1px solid var(--border-dim);}
+  .stat:last-child{border-right:none;}
+  .stat-num{font-family:var(--mono); font-weight:700; font-size:1.5rem;}
+  .stat-num.accent{color:var(--cardinal);}
+  .stat-label{margin-top:3px; font-size:12.5px; color:var(--text-faint);}
+
+  /* ===== Commit feed — the core mechanism ===== */
+  .feed-section{max-width:900px; margin:0 auto; padding:56px 32px 0;}
+  .feed-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; padding-bottom:14px; border-bottom:1px solid var(--border-dim);}
+  .feed-title{font-size:13px; font-weight:600; color:var(--text-dim); display:flex; align-items:center; gap:8px;}
+  .feed-title .live-dot{width:6px; height:6px; border-radius:50%; background:var(--add); animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+  .feed-count{font-family:var(--mono); font-size:12px; color:var(--text-faint);}
+
+  .commit{
+    display:grid; grid-template-columns:36px 1fr auto; gap:14px;
+    padding:18px 0; border-bottom:1px solid var(--border-dim);
+    align-items:start;
+  }
+  .commit-icon{
+    width:32px; height:32px; border-radius:50%; background:var(--paper-2); border:1px solid var(--border);
+    display:grid; place-items:center; font-size:14px; margin-top:2px;
+  }
+  .commit-icon.pin{background:var(--cardinal-tint); border-color:var(--cardinal);}
+  .commit-main .msg{font-size:14.5px; font-weight:600;}
+  .commit-main .msg .scope{color:var(--link); font-weight:600;}
+  .commit-main .diff{margin-top:8px; font-family:var(--mono); font-size:12.5px; display:flex; flex-direction:column; gap:2px;}
+  .diff-add{color:var(--add); background:var(--add-bg); padding:2px 8px; border-radius:4px; display:inline-block; width:fit-content;}
+  .diff-del{color:var(--del); background:var(--del-bg); padding:2px 8px; border-radius:4px; display:inline-block; width:fit-content;}
+  .commit-meta{text-align:right; font-family:var(--mono); font-size:11.5px; color:var(--text-faint); white-space:nowrap;}
+  .commit-meta .hash{color:var(--link); display:block; margin-bottom:4px;}
+  .commit-cta{
+    margin-top:12px; display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:12px; font-weight:600; color:#fff; background:var(--cardinal);
+    padding:8px 14px; border-radius:6px; text-decoration:none;
+  }
+
+  /* ===== Mission: as README ===== */
+  .readme{max-width:900px; margin:64px auto 0; padding:0 32px;}
+  .readme-file{
+    border:1px solid var(--border); border-radius:10px; overflow:hidden;
+  }
+  .readme-tab{
+    display:flex; align-items:center; gap:8px;
+    padding:11px 18px; background:var(--paper-2); border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:12.5px; color:var(--text-dim); font-weight:600;
+  }
+  .readme-body{padding:32px 36px;}
+  .readme-body h2{font-size:1.6rem; font-weight:800; letter-spacing:-0.02em; margin-bottom:14px;}
+  .readme-body p{color:var(--text-dim); font-size:1.02rem; max-width:65ch; margin-bottom:12px;}
+  .readme-body p:last-child{margin-bottom:0;}
+
+  /* ===== Projects as repo list ===== */
+  .repolist{max-width:900px; margin:64px auto 0; padding:0 32px 64px;}
+  .section-label{font-size:13px; font-weight:600; color:var(--text-dim); margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border-dim); display:flex; justify-content:space-between;}
+  .repo-row{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:20px;
+    padding:20px 0; border-bottom:1px solid var(--border-dim);
+  }
+  .repo-row-name{font-family:var(--mono); font-weight:700; font-size:15px; color:var(--link);}
+  .repo-row-desc{margin-top:4px; color:var(--text-dim); font-size:13.5px; max-width:55ch;}
+  .repo-row-tags{margin-top:10px; display:flex; gap:8px;}
+  .lang-tag{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-dim);}
+  .lang-dot{width:9px; height:9px; border-radius:50%;}
+  .lang-dot.ts{background:#3178c6;} .lang-dot.py{background:#3572A5;} .lang-dot.go{background:#00ADD8;}
+  .repo-row-stat{font-family:var(--mono); font-size:12.5px; color:var(--text-faint); white-space:nowrap;}
+
+  /* Contributors as GitHub-style contributor grid */
+  .contributors{max-width:900px; margin:0 auto; padding:0 32px 64px;}
+  .contrib-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:16px; margin-top:20px;}
+  .contrib{text-align:center;}
+  .contrib-avatar{
+    width:56px; height:56px; border-radius:50%; margin:0 auto 8px;
+    background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:0.95rem;
+  }
+  .contrib-name{font-size:11.5px; font-weight:600;}
+  .contrib-role{font-size:10.5px; color:var(--cardinal); font-family:var(--mono);}
+
+  /* Closing: merge CTA */
+  .closing{
+    background:var(--ink); color:#fff;
+    padding:72px 32px; text-align:center;
+  }
+  .closing-inner{max-width:640px; margin:0 auto;}
+  .closing h2{font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; letter-spacing:-0.02em;}
+  .closing p{margin-top:14px; color:#9ba7b4; font-size:1.05rem;}
+  .closing .btn-primary{margin-top:28px; display:inline-block; padding:13px 28px; font-size:14.5px;}
+
+  footer{padding:24px 32px; display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-faint); border-top:1px solid var(--border-dim); font-family:var(--mono);}
+
+  @media (max-width:760px){
+    .navlinks{display:none;}
+    .repo-header, .feed-section, .readme, .repolist, .contributors{padding-left:20px; padding-right:20px;}
+    .stats{padding:0 20px; flex-wrap:wrap;}
+    .stat{flex:1 1 45%; border-right:none; border-bottom:1px solid var(--border-dim);}
+    .commit{grid-template-columns:32px 1fr; }
+    .commit-meta{grid-column:2; text-align:left; margin-top:4px;}
+    .readme-body{padding:24px 20px;}
+    .contrib-grid{grid-template-columns:repeat(3,1fr);}
+    nav{padding:12px 16px;}
+    .repo-row{flex-direction:column; gap:8px;}
+  }
+</style>
+</head>
+<body>
+
+  <nav>
+    <div style="display:flex; align-items:center;">
+      <div class="brand"><div class="brand-mark">{ }</div><div class="brand-name">madcoders</div></div>
+      <div class="branch-pill">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.492 2.492 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Z"/></svg>
+        main
+      </div>
+    </div>
+    <div class="navlinks">
+      <a href="#">Meetings</a>
+      <a href="#">Projects</a>
+      <a href="#">Team</a>
+      <a href="#">Contact</a>
+    </div>
+    <a class="nav-cta" href="#">RSVP</a>
+  </nav>
+
+  <div class="repo-header">
+    <div class="repo-path">uw-madison <span class="sep">/</span> <strong style="color:var(--text);">madcoders</strong></div>
+    <h1>Public. Student-run. Always shipping.</h1>
+    <p class="repo-desc">UW–Madison's software development club — weekly builds, real projects, and a community that ships. No experience required, every major welcome.</p>
+    <div class="repo-meta">
+      <span><span class="dot"></span> Fall 2026 term — actively recruiting</span>
+      <span>📍 CS 1240</span>
+      <span>🕐 Tuesdays, 7:00 PM</span>
+    </div>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#">★ RSVP for next meeting</a>
+      <a class="btn-secondary" href="#">View projects</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num accent">03</div><div class="stat-label">Active tracks</div></div>
+    <div class="stat"><div class="stat-num">TBD</div><div class="stat-label">Members</div></div>
+    <div class="stat"><div class="stat-num">Wk</div><div class="stat-label">Cadence</div></div>
+    <div class="stat"><div class="stat-num">All</div><div class="stat-label">Majors welcome</div></div>
+  </div>
+
+  <div class="feed-section">
+    <div class="feed-head">
+      <div class="feed-title"><span class="live-dot"></span>Recent activity</div>
+      <div class="feed-count">4 commits this week</div>
+    </div>
+
+    <div class="commit">
+      <div class="commit-icon pin">📌</div>
+      <div class="commit-main">
+        <div class="msg"><span class="scope">meetings:</span> schedule Full-Stack Foundations session</div>
+        <div class="diff">
+          <span class="diff-add">+ Tue, Sep 9 · 7:00 PM · CS 1240</span>
+          <span class="diff-add">+ open enrollment, no RSVP deadline</span>
+        </div>
+        <a class="commit-cta" href="#">RSVP →</a>
+      </div>
+      <div class="commit-meta"><span class="hash">#a91f2c</span>2 days ago</div>
+    </div>
+
+    <div class="commit">
+      <div class="commit-icon">🚀</div>
+      <div class="commit-main">
+        <div class="msg"><span class="scope">projects:</span> ship Systems & Infra track</div>
+        <div class="diff">
+          <span class="diff-add">+ CLIs, containers, and production tooling</span>
+        </div>
+      </div>
+      <div class="commit-meta"><span class="hash">#7c3e01</span>5 days ago</div>
+    </div>
+
+    <div class="commit">
+      <div class="commit-icon">👋</div>
+      <div class="commit-main">
+        <div class="msg"><span class="scope">roster:</span> onboard 6 new members</div>
+        <div class="diff">
+          <span class="diff-add">+ 6 contributors added to roster.json</span>
+        </div>
+      </div>
+      <div class="commit-meta"><span class="hash">#4f88ba</span>1 week ago</div>
+    </div>
+
+    <div class="commit">
+      <div class="commit-icon">🗑️</div>
+      <div class="commit-main">
+        <div class="msg"><span class="scope">meetings:</span> archive Summer '26 sessions</div>
+        <div class="diff">
+          <span class="diff-del">- Summer social, weekly workshops</span>
+        </div>
+      </div>
+      <div class="commit-meta"><span class="hash">#1a02de</span>3 weeks ago</div>
+    </div>
+  </div>
+
+  <div class="readme">
+    <div class="readme-file">
+      <div class="readme-tab">📄 README.md</div>
+      <div class="readme-body">
+        <h2>Building software and community at UW–Madison.</h2>
+        <p>MadCoders is a student organization dedicated to software engineering, open-source collaboration, and technology skills — whether you're writing your first lines of code or shipping full-stack applications.</p>
+        <p>Our weekly meetings cover coding tutorials, project collaboration, interview prep, and tech discussions designed to help every member build confidence as a developer.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="repolist">
+    <div class="section-label"><span>Projects & technical tracks</span><span>3 repositories</span></div>
+    <div class="repo-row">
+      <div>
+        <div class="repo-row-name">full-stack-foundations</div>
+        <div class="repo-row-desc">Ship a production web app from database to deploy — the club's flagship intro track.</div>
+        <div class="repo-row-tags"><span class="lang-tag"><span class="lang-dot ts"></span>TypeScript</span></div>
+      </div>
+      <div class="repo-row-stat">No prereq</div>
+    </div>
+    <div class="repo-row">
+      <div>
+        <div class="repo-row-name">systems-and-infra</div>
+        <div class="repo-row-desc">CLIs, containers, and the tools that run production software.</div>
+        <div class="repo-row-tags"><span class="lang-tag"><span class="lang-dot go"></span>Go</span></div>
+      </div>
+      <div class="repo-row-stat">Some exp.</div>
+    </div>
+    <div class="repo-row">
+      <div>
+        <div class="repo-row-name">applied-ml</div>
+        <div class="repo-row-desc">Models, pipelines, and shipping machine learning that actually works.</div>
+        <div class="repo-row-tags"><span class="lang-tag"><span class="lang-dot py"></span>Python</span></div>
+      </div>
+      <div class="repo-row-stat">Some exp.</div>
+    </div>
+  </div>
+
+  <div class="contributors">
+    <div class="section-label"><span>Top contributors</span><span>view all →</span></div>
+    <div class="contrib-grid">
+      <div class="contrib"><div class="contrib-avatar">AH</div><div class="contrib-name">Ari H.</div><div class="contrib-role">President</div></div>
+      <div class="contrib"><div class="contrib-avatar">JL</div><div class="contrib-name">Jordan L.</div><div class="contrib-role">VP</div></div>
+      <div class="contrib"><div class="contrib-avatar">SP</div><div class="contrib-name">Sam P.</div><div class="contrib-role">Events</div></div>
+      <div class="contrib"><div class="contrib-avatar">MC</div><div class="contrib-name">Mia C.</div><div class="contrib-role">Treasurer</div></div>
+      <div class="contrib"><div class="contrib-avatar">DK</div><div class="contrib-name">Dev K.</div><div class="contrib-role">Member</div></div>
+      <div class="contrib"><div class="contrib-avatar">RT</div><div class="contrib-name">Riya T.</div><div class="contrib-role">Member</div></div>
+    </div>
+  </div>
+
+  <div class="closing">
+    <div class="closing-inner">
+      <h2>Open a pull request on your future.</h2>
+      <p>Have an idea for a project or workshop? Pitch it — we'll help you ship it.</p>
+      <a class="btn-primary" href="#">Pitch a project →</a>
+    </div>
+  </div>
+
+  <footer>
+    <span>madcoders © 2026</span>
+    <span>UW–Madison · Student Organization</span>
+  </footer>
+
+</body>
+</html>

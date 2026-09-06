@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>MadCoders — Registrar Ledger (Dark)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#eef0f2;
+    --ink-dim:#9aa3ac;
+    --ink-faint:#5c6470;
+    --ground:#0b0d10;
+    --ground-2:#111418;
+    --surface:#15181d;
+    --hairline:#262b32;
+    --hairline-strong:#3a4149;
+    --cardinal:#e0342e;
+    --cardinal-dim:#7a1c19;
+    --cardinal-tint:rgba(224,52,46,0.12);
+    --stamp:#e0342e;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{background:var(--ground);}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .wrap{max-width:1400px; margin:0 auto;}
+
+  /* ===== Top registrar bar ===== */
+  .regbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 32px;
+    border-bottom:1px solid var(--hairline);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .regbar .seq{color:var(--ink-dim);}
+  .regbar .live{display:flex; align-items:center; gap:8px; color:var(--cardinal);}
+  .regbar .dot{width:6px; height:6px; border-radius:50%; background:var(--cardinal); animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+
+  /* ===== Nav ===== */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px;
+    border-bottom:1px solid var(--hairline);
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{
+    width:34px; height:34px;
+    border:1.5px solid var(--cardinal);
+    display:grid; place-items:center;
+    font-family:var(--mono); font-weight:700; font-size:13px; color:var(--cardinal);
+  }
+  .brand-name{font-weight:700; font-size:15px; letter-spacing:0.01em;}
+  .brand-sub{font-family:var(--mono); font-size:10px; color:var(--ink-faint); letter-spacing:0.1em; text-transform:uppercase; margin-top:1px;}
+  .navlinks{display:flex; gap:36px; font-family:var(--mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-dim);}
+  .navlinks a{color:inherit; text-decoration:none; position:relative;}
+  .navlinks a::before{content:"·"; margin-right:8px; color:var(--hairline-strong);}
+  .navlinks a:first-child::before{display:none;}
+  .navlinks a:hover{color:var(--ink);}
+  .nav-cta{
+    font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--ground); background:var(--cardinal);
+    padding:10px 18px; text-decoration:none;
+  }
+
+  /* ===== Hero: the ledger grid ===== */
+  .hero{
+    display:grid;
+    grid-template-columns: 72px 1fr 420px;
+    border-bottom:1px solid var(--hairline);
+    min-height:560px;
+  }
+  .hero-gutter{
+    border-right:1px solid var(--hairline);
+    font-family:var(--mono); font-size:10px; color:var(--ink-faint);
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 0;
+    gap:38px;
+  }
+  .hero-main{
+    padding:56px 48px;
+    border-right:1px solid var(--hairline);
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .kicker{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--cardinal); display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .kicker::before{content:""; width:24px; height:1px; background:var(--cardinal);}
+  h1{
+    font-size:clamp(2.6rem, 5.2vw, 4.6rem);
+    font-weight:800;
+    letter-spacing:-0.02em;
+    line-height:0.98;
+    max-width:14ch;
+  }
+  h1 .num{font-family:var(--mono); color:var(--cardinal); font-weight:700;}
+  .hero-dek{
+    margin-top:22px; max-width:46ch; font-size:1.15rem; color:var(--ink-dim); font-weight:400;
+  }
+  .hero-actions{display:flex; gap:16px; margin-top:36px;}
+  .btn-primary{
+    font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
+    background:var(--cardinal); color:var(--ground);
+    padding:15px 26px; text-decoration:none; display:inline-flex; align-items:center; gap:10px;
+  }
+  .btn-primary::after{content:"→";}
+  .btn-ghost{
+    font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
+    border:1px solid var(--hairline-strong); color:var(--ink);
+    padding:14px 26px; text-decoration:none;
+  }
+
+  /* ===== Ledger card (next meeting) ===== */
+  .ledger-card{
+    padding:32px;
+    display:flex; flex-direction:column;
+  }
+  .ledger-head{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--ink-faint);
+    display:flex; justify-content:space-between;
+    padding-bottom:18px; border-bottom:1px solid var(--hairline-strong);
+    margin-bottom:22px;
+  }
+  .ledger-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:13px 0; border-bottom:1px solid var(--hairline);
+    font-size:13px;
+  }
+  .ledger-row .label{color:var(--ink-faint); font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase;}
+  .ledger-row .val{font-weight:600; text-align:right; font-family:var(--mono); font-size:14px;}
+  .ledger-row .val.big{color:var(--cardinal); font-size:16px;}
+  .stamp-row{
+    margin-top:24px; padding-top:20px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .stamp{
+    width:52px; height:52px; border-radius:50%;
+    border:2px solid var(--cardinal);
+    display:grid; place-items:center;
+    font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.05em;
+    color:var(--cardinal); text-transform:uppercase; text-align:center;
+    transform:rotate(-8deg);
+    flex-shrink:0;
+  }
+  .rsvp-btn{
+    flex:1;
+    font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+    background:var(--cardinal); color:var(--ground);
+    padding:16px; text-align:center; text-decoration:none;
+  }
+
+  /* ===== Stats strip ===== */
+  .stats{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    border-bottom:1px solid var(--hairline);
+  }
+  .stat{
+    padding:32px 28px;
+    border-right:1px solid var(--hairline);
+  }
+  .stat:last-child{border-right:none;}
+  .stat-num{font-family:var(--mono); font-size:2.2rem; font-weight:700; color:var(--ink);}
+  .stat-num .accent{color:var(--cardinal);}
+  .stat-label{margin-top:8px; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint);}
+
+  /* ===== Section: mission (ledger entry style) ===== */
+  section{padding:88px 48px; border-bottom:1px solid var(--hairline);}
+  .section-head{display:grid; grid-template-columns:280px 1fr; gap:48px; margin-bottom:56px;}
+  .section-tag{font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--cardinal);}
+  .section-tag::before{content:"§ ";}
+  h2{font-size:clamp(1.8rem,3vw,2.6rem); font-weight:700; letter-spacing:-0.01em; max-width:20ch;}
+  .lede{max-width:60ch; color:var(--ink-dim); font-size:1.05rem;}
+
+  .catalog{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+    border-top:1px solid var(--hairline-strong);
+    border-left:1px solid var(--hairline-strong);
+  }
+  .catalog-item{
+    border-right:1px solid var(--hairline-strong);
+    border-bottom:1px solid var(--hairline-strong);
+    padding:30px 26px;
+  }
+  .catalog-code{font-family:var(--mono); font-size:10px; color:var(--ink-faint); letter-spacing:0.1em;}
+  .catalog-title{margin-top:14px; font-size:1.15rem; font-weight:700;}
+  .catalog-desc{margin-top:10px; color:var(--ink-dim); font-size:0.92rem;}
+  .catalog-cr{margin-top:18px; font-family:var(--mono); font-size:10px; color:var(--cardinal); letter-spacing:0.08em; text-transform:uppercase;}
+
+  /* Team roster ledger */
+  .roster{border-top:1px solid var(--hairline-strong);}
+  .roster-row{
+    display:grid; grid-template-columns:60px 1fr 200px 160px 140px;
+    align-items:center; gap:20px;
+    padding:18px 0; border-bottom:1px solid var(--hairline);
+    font-size:13px;
+  }
+  .roster-row.head{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint);
+    border-bottom:1px solid var(--hairline-strong); padding-bottom:12px;
+  }
+  .roster-id{font-family:var(--mono); color:var(--ink-faint); font-size:11px;}
+  .roster-name{font-weight:600;}
+  .roster-role{color:var(--cardinal); font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em;}
+  .roster-major{color:var(--ink-dim); font-size:12px;}
+  .roster-class{font-family:var(--mono); color:var(--ink-faint); font-size:11px; text-align:right;}
+
+  /* CTA closing */
+  .closing{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:88px 48px; background:var(--cardinal); color:var(--ground);
+    border-bottom:none;
+  }
+  .closing h2{color:var(--ground); max-width:16ch;}
+  .closing .btn-primary{background:var(--ground); color:var(--cardinal);}
+  .closing .btn-primary::after{content:"→"; color:var(--cardinal);}
+
+  footer{padding:28px 48px; font-family:var(--mono); font-size:10px; color:var(--ink-faint); letter-spacing:0.08em; text-transform:uppercase; display:flex; justify-content:space-between;}
+
+  @media (max-width: 900px){
+    .hero{grid-template-columns:1fr; min-height:auto;}
+    .hero-gutter{display:none;}
+    .hero-main{padding:40px 24px; border-right:none; border-bottom:1px solid var(--hairline);}
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .stat:nth-child(2){border-right:none;}
+    .stat{border-bottom:1px solid var(--hairline);}
+    .section-head{grid-template-columns:1fr; gap:16px;}
+    .catalog{grid-template-columns:1fr;}
+    .roster-row{grid-template-columns:1fr; gap:4px; padding:16px 0;}
+    .roster-row.head{display:none;}
+    .navlinks{display:none;}
+    .closing{flex-direction:column; align-items:flex-start; gap:24px;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="regbar">
+    <span class="seq">REG 2026 · FALL TERM · REC NO. 00184</span>
+    <span class="live"><span class="dot"></span>ENROLLMENT OPEN</span>
+  </div>
+
+  <nav>
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <div>
+        <div class="brand-name">MadCoders</div>
+        <div class="brand-sub">UW–Madison</div>
+      </div>
+    </div>
+    <div class="navlinks">
+      <a href="#">Meetings</a>
+      <a href="#">Projects</a>
+      <a href="#">Team</a>
+      <a href="#">Contact</a>
+    </div>
+    <a class="nav-cta" href="#">RSVP →</a>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-gutter">
+      <span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span>
+    </div>
+    <div class="hero-main">
+      <div class="kicker">Course No. CS–184 · Student-Run</div>
+      <h1>Code is taught <span class="num">here.</span></h1>
+      <p class="hero-dek">MadCoders is UW–Madison's student-run development club — weekly builds, real projects, and a roster that ships. No prerequisites, every major welcome.</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#">RSVP for Tuesday</a>
+        <a class="btn-ghost" href="#">View syllabus</a>
+      </div>
+    </div>
+    <div class="ledger-card">
+      <div class="ledger-head"><span>Next Session</span><span>Live</span></div>
+      <div class="ledger-row"><span class="label">Date</span><span class="val big">Tue, Sep 9</span></div>
+      <div class="ledger-row"><span class="label">Time</span><span class="val">7:00 PM</span></div>
+      <div class="ledger-row"><span class="label">Room</span><span class="val">CS 1240</span></div>
+      <div class="ledger-row"><span class="label">Track</span><span class="val">Full-Stack</span></div>
+      <div class="stamp-row">
+        <div class="stamp">Open<br>Enroll</div>
+        <a class="rsvp-btn" href="#">RSVP →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num"><span class="accent">03</span></div><div class="stat-label">Active tracks</div></div>
+    <div class="stat"><div class="stat-num">TBD</div><div class="stat-label">Members enrolled</div></div>
+    <div class="stat"><div class="stat-num">Wk.</div><div class="stat-label">Meeting cadence</div></div>
+    <div class="stat"><div class="stat-num">All</div><div class="stat-label">Majors accepted</div></div>
+  </div>
+
+  <section>
+    <div class="section-head">
+      <div class="section-tag">Mission</div>
+      <div>
+        <h2>Building software and community at UW–Madison.</h2>
+        <p class="lede" style="margin-top:18px;">MadCoders is a student organization dedicated to software engineering, open-source collaboration, and technology skills — whether you're writing your first lines of code or shipping full-stack applications.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-tag" style="margin-bottom:12px;">Catalog</div>
+    <h2 style="margin-bottom:12px;">Projects & Technical Tracks</h2>
+    <p class="lede" style="margin-bottom:40px;">Student-led development tracks, open for enrollment.</p>
+    <div class="catalog">
+      <div class="catalog-item">
+        <div class="catalog-code">TRK · 101</div>
+        <div class="catalog-title">Full-Stack Foundations</div>
+        <div class="catalog-desc">Ship a production web app from database to deploy.</div>
+        <div class="catalog-cr">3 CR · No prereq</div>
+      </div>
+      <div class="catalog-item">
+        <div class="catalog-code">TRK · 204</div>
+        <div class="catalog-title">Systems & Infra</div>
+        <div class="catalog-desc">CLIs, containers, and the tools that run production.</div>
+        <div class="catalog-cr">3 CR · Some exp.</div>
+      </div>
+      <div class="catalog-item">
+        <div class="catalog-code">TRK · 310</div>
+        <div class="catalog-title">Applied ML</div>
+        <div class="catalog-desc">Models, pipelines, and shipping ML that works.</div>
+        <div class="catalog-cr">4 CR · Some exp.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-tag" style="margin-bottom:12px;">Roster</div>
+    <h2 style="margin-bottom:40px;">Built by Badgers.</h2>
+    <div class="roster">
+      <div class="roster-row head">
+        <span>ID</span><span>Name</span><span>Role</span><span>Major</span><span>Class</span>
+      </div>
+      <div class="roster-row">
+        <span class="roster-id">001</span>
+        <span class="roster-name">Ari Hayempour</span>
+        <span class="roster-role">President</span>
+        <span class="roster-major">Computer Science</span>
+        <span class="roster-class">'27</span>
+      </div>
+      <div class="roster-row">
+        <span class="roster-id">002</span>
+        <span class="roster-name">Jordan Lee</span>
+        <span class="roster-role">Vice President</span>
+        <span class="roster-major">Data Science</span>
+        <span class="roster-class">'26</span>
+      </div>
+      <div class="roster-row">
+        <span class="roster-id">003</span>
+        <span class="roster-name">Sam Patel</span>
+        <span class="roster-role">Events Lead</span>
+        <span class="roster-major">CS + Math</span>
+        <span class="roster-class">'28</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="closing">
+    <h2>Build with MadCoders.</h2>
+    <a class="btn-primary" href="#">Pitch a project</a>
+  </div>
+
+  <footer>
+    <span>MadCoders © 2026</span>
+    <span>UW–Madison · Student Organization</span>
+  </footer>
+
+</body>
+</html>

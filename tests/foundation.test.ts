@@ -38,7 +38,9 @@ describe('Header.astro', () => {
   it('links to every top-level route with real hrefs', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Header);
-    for (const href of ['/', '/meetings', '/create-next-digest', '/contact']) {
+    // Primary tabs mirror the file tree (index/meetings/team/contact); digest creation
+    // is reachable from the homepage's project list, not the top-level tab bar.
+    for (const href of ['/', '/meetings', '/team', '/contact']) {
       expect(html).toContain(`href="${href}"`);
     }
   });

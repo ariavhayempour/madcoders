@@ -28,10 +28,11 @@ describe('legacy color regression guard', () => {
 });
 
 describe('BaseLayout wires the branded system', () => {
-  it('imports the global Tailwind base and the self-hosted Spectral + Hanken fonts', () => {
+  it('imports the global Tailwind base and the self-hosted Geist fonts (admin keeps Spectral)', () => {
     expect(layout).toMatch(/styles\/global\.css/);
+    expect(layout).toMatch(/@fontsource-variable\/geist['"]/);
+    expect(layout).toMatch(/@fontsource-variable\/geist-mono/);
     expect(layout).toMatch(/@fontsource\/spectral/);
-    expect(layout).toMatch(/@fontsource-variable\/hanken-grotesk/);
   });
 
   it('renders the branded header and footer chrome on every page', async () => {
@@ -40,23 +41,23 @@ describe('BaseLayout wires the branded system', () => {
       props: { title: 'Home', description: 'MadCoders.', path: '/' },
       slots: { default: '<p>page body</p>' },
     });
-    expect(html).toContain('MadCoders'); // masthead wordmark
+    expect(html).toContain('madcoders'); // tab bar wordmark
     expect(html).toContain('Madison, WI, 53706'); // footer
     expect(html).toContain('<p>page body</p>'); // slotted content
   });
 });
 
 describe('Header/Footer render their branded structure', () => {
-  it('Header renders the wordmark in the serif family', async () => {
+  it('Header renders the wordmark in the editor tab bar', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Header);
-    expect(html).toMatch(/font-serif[^"]*"[^>]*>MadCoders/);
+    expect(html).toMatch(/font-mono[^"]*"[^>]*>\s*madcoders/);
   });
 
   it('Footer renders the wordmark and connect links', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer);
-    expect(html).toContain('MadCoders');
-    expect(html).toContain('Connect');
+    expect(html).toContain('madcoders');
+    expect(html).toContain('// connect');
   });
 });

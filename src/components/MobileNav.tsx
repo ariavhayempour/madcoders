@@ -24,7 +24,7 @@ export default function MobileNav({ links }: { links: Link[] }) {
       </SheetTrigger>
       <SheetContent side="right" className="w-72">
         <SheetHeader>
-          <SheetTitle className="font-serif text-xl">MadCoders</SheetTitle>
+          <SheetTitle className="font-mono text-lg font-semibold">{'{ }'} madcoders</SheetTitle>
         </SheetHeader>
         <nav className="mt-2 flex flex-col px-4 pb-6">
           {links.map((l) => (
@@ -32,7 +32,7 @@ export default function MobileNav({ links }: { links: Link[] }) {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className="border-b border-border py-3 text-lg font-medium text-foreground/80 transition-colors hover:text-primary"
+              className="border-b border-border py-3 font-mono text-base font-medium text-foreground/80 transition-colors hover:text-primary"
             >
               {l.label}
             </a>

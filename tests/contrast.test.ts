@@ -39,7 +39,7 @@ const PAIRS = [
   { label: 'body ink on paper', fg: 'foreground', bg: 'background' },
   { label: 'muted body on paper', fg: 'muted-foreground', bg: 'background' },
   { label: 'muted body on cream/muted surface', fg: 'muted-foreground', bg: 'muted' },
-  { label: 'primary (Cardinal) link on paper', fg: 'primary', bg: 'background' },
+  { label: 'cardinal-700 link/accent text on paper', fg: 'cardinal-700', bg: 'background' },
   { label: 'white label on primary button', fg: 'primary-foreground', bg: 'primary' },
   { label: 'cardinal-700 on paper', fg: 'cardinal-700', bg: 'background' },
   { label: 'digest badge text on cardinal tint', fg: 'cardinal-700', bg: 'cardinal-tint' },
