@@ -21,7 +21,7 @@ describe('branded Header (Tailwind + tokens)', () => {
   it('renders the wordmark and the primary nav', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(HeaderCmp);
-    expect(html).toContain('Badger Journals');
+    expect(html).toContain('MadCoders');
     for (const href of ['/', '/meetings', '/create-next-digest', '/contact']) {
       expect(html).toContain(`href="${href}"`);
     }
@@ -36,9 +36,8 @@ describe('branded Footer (Tailwind + tokens)', () => {
   it('renders the wordmark and social links', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FooterCmp);
-    expect(html).toContain('Badger Journals');
-    expect(html).toContain('https://www.instagram.com/badgerjournals/');
-    expect(html).toContain('https://www.linkedin.com/company/badger-journals/home/');
+    expect(html).toContain('MadCoders');
+    expect(html).toContain('https://www.instagram.com/madcoders/');
   });
 
   it('carries the Team link (moved out of the primary nav) and the admin link', async () => {

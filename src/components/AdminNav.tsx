@@ -53,7 +53,7 @@ export default function AdminNav({ links }: { links: AdminLink[] }) {
       </SheetTrigger>
       <SheetContent side="left" className="w-72 bg-sidebar">
         <SheetHeader>
-          <SheetTitle className="font-serif text-lg">Badger Journals Admin</SheetTitle>
+          <SheetTitle className="font-serif text-lg">MadCoders Admin</SheetTitle>
         </SheetHeader>
         <nav className="grid gap-1 px-3 pb-6">
           {links.map((l) => {

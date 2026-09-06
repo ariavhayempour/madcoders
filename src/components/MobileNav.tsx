@@ -24,7 +24,7 @@ export default function MobileNav({ links }: { links: Link[] }) {
       </SheetTrigger>
       <SheetContent side="right" className="w-72">
         <SheetHeader>
-          <SheetTitle className="font-serif text-xl">Badger Journals</SheetTitle>
+          <SheetTitle className="font-serif text-xl">MadCoders</SheetTitle>
         </SheetHeader>
         <nav className="mt-2 flex flex-col px-4 pb-6">
           {links.map((l) => (

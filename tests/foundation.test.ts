@@ -9,25 +9,25 @@ describe('SEO.astro', () => {
   it('emits a page-specific title suffixed with the site name', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(SEO, {
-      props: { title: 'Mission', description: 'Why Badger Journals exists.', path: '/mission' },
+      props: { title: 'Mission', description: 'Why MadCoders exists.', path: '/mission' },
     });
-    expect(html).toContain('<title>Mission · Badger Journals</title>');
+    expect(html).toContain('<title>Mission · MadCoders</title>');
   });
 
   it('emits description and Open Graph tags from props', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(SEO, {
-      props: { title: 'Mission', description: 'Why Badger Journals exists.', path: '/mission' },
+      props: { title: 'Mission', description: 'Why MadCoders exists.', path: '/mission' },
     });
-    expect(html).toContain('name="description" content="Why Badger Journals exists."');
+    expect(html).toContain('name="description" content="Why MadCoders exists."');
     expect(html).toContain('property="og:title" content="Mission"');
-    expect(html).toContain('property="og:description" content="Why Badger Journals exists."');
+    expect(html).toContain('property="og:description" content="Why MadCoders exists."');
   });
 
   it('builds an absolute canonical URL that includes the page path', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(SEO, {
-      props: { title: 'Mission', description: 'Why Badger Journals exists.', path: '/mission' },
+      props: { title: 'Mission', description: 'Why MadCoders exists.', path: '/mission' },
     });
     expect(html).toMatch(/rel="canonical" href="https?:\/\/[^"]+\/mission"/);
     expect(html).toMatch(/property="og:url" content="https?:\/\/[^"]+\/mission"/);
@@ -49,8 +49,7 @@ describe('Footer.astro', () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer);
     expect(html).toContain('Madison, WI, 53706');
-    expect(html).toContain('https://www.instagram.com/badgerjournals/');
-    expect(html).toContain('https://www.linkedin.com/company/badger-journals/home/');
+    expect(html).toContain('https://www.instagram.com/madcoders/');
   });
 });
 
@@ -58,11 +57,11 @@ describe('BaseLayout.astro', () => {
   it('wraps slotted content in an html shell with SEO, header, and footer', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(BaseLayout, {
-      props: { title: 'Mission', description: 'Why Badger Journals exists.', path: '/mission' },
+      props: { title: 'Mission', description: 'Why MadCoders exists.', path: '/mission' },
       slots: { default: '<p>slot content here</p>' },
     });
     expect(html).toContain('<html lang="en"');
-    expect(html).toContain('<title>Mission · Badger Journals</title>');
+    expect(html).toContain('<title>Mission · MadCoders</title>');
     expect(html).toContain('href="/meetings"'); // header nav present
     expect(html).toContain('Madison, WI, 53706'); // footer present
     expect(html).toContain('<p>slot content here</p>'); // slotted page content

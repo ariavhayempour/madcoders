@@ -46,7 +46,7 @@ async function renderWith(rows: EventRow[], url = 'http://localhost/meetings'): 
 describe('/meetings page shell', () => {
   it('renders its own title, meta, and heading', async () => {
     const html = await renderWith([]);
-    expect(html).toContain('<title>Meetings · Badger Journals</title>');
+    expect(html).toContain('<title>Meetings · MadCoders</title>');
     expect(html).toContain('property="og:title" content="Meetings"');
     expect(html).toMatch(/>\s*RSVP to an event\.\s*<\/h1>/);
   });

@@ -37,10 +37,10 @@ describe('BaseLayout wires the branded system', () => {
   it('renders the branded header and footer chrome on every page', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(BaseLayout, {
-      props: { title: 'Home', description: 'Badger Journals.', path: '/' },
+      props: { title: 'Home', description: 'MadCoders.', path: '/' },
       slots: { default: '<p>page body</p>' },
     });
-    expect(html).toContain('Badger Journals'); // masthead wordmark
+    expect(html).toContain('MadCoders'); // masthead wordmark
     expect(html).toContain('Madison, WI, 53706'); // footer
     expect(html).toContain('<p>page body</p>'); // slotted content
   });
@@ -50,13 +50,13 @@ describe('Header/Footer render their branded structure', () => {
   it('Header renders the wordmark in the serif family', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Header);
-    expect(html).toMatch(/font-serif[^"]*"[^>]*>Badger Journals/);
+    expect(html).toMatch(/font-serif[^"]*"[^>]*>MadCoders/);
   });
 
   it('Footer renders the wordmark and connect links', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer);
-    expect(html).toContain('Badger Journals');
+    expect(html).toContain('MadCoders');
     expect(html).toContain('Connect');
   });
 });

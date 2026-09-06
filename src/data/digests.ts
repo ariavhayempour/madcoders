@@ -4,9 +4,9 @@ export interface Digest {
   description: string;
 }
 
-// The digests currently in publication.
+// Technical tracks & coding projects.
 export const digests: Digest[] = [
-  { icon: '❤️', title: 'Cardiovascular', description: 'Heart disease, vascular biology, cardiac imaging, and circulatory health research.' },
-  { icon: '🎗️', title: 'Cancer', description: 'Oncology, tumor biology, immunotherapy, and precision cancer treatment.' },
-  { icon: '🧠', title: 'Neuroscience', description: 'The brain and nervous system, neurodegeneration, cognition, and neural circuits.' },
+  { icon: '💻', title: 'Web Development', description: 'Frontend, backend, and full-stack web application development.' },
+  { icon: '🤖', title: 'AI & Machine Learning', description: 'Machine learning algorithms, neural networks, and AI application building.' },
+  { icon: '🛠️', title: 'Systems & Open Source', description: 'Systems programming, algorithms, developer tools, and open-source projects.' },
 ];

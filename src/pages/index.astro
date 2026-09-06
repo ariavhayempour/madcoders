@@ -47,8 +47,8 @@ const initials = (name: string) =>
 const marquee = [...members, ...members]; // duplicated for a seamless loop
 ---
 <BaseLayout
-  title="Badger Journals"
-  description="We read and discuss the latest scientific findings to make research approachable for students at UW–Madison."
+  title="MadCoders"
+  description="UW-Madison Madison Coders Club — building software, learning together, and exploring technology."
   path="/"
 >
   <!-- Hero -->
@@ -68,13 +68,13 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         <span class="h-0.5 w-7 bg-[#ff9a9a]"></span>University of Wisconsin–Madison
       </p>
       <h1 class="max-w-[15ch] font-serif text-[clamp(2.75rem,6vw,5rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-balance">
-        Badger Journals
+        MadCoders
       </h1>
       <p class="mt-4 font-serif text-[clamp(1.25rem,2.4vw,1.75rem)] font-semibold text-white/95">
-        Research Made <em class="font-semibold italic">Approachable</em>.
+        Coding Made <em class="font-semibold italic">Approachable</em>.
       </p>
       <p class="mt-4 max-w-[46ch] text-base sm:text-lg leading-relaxed text-white/80">
-        We read and discuss the latest scientific findings to make research approachable for students at UW–Madison.
+        We build projects, host technical workshops, and connect student developers at UW–Madison.
       </p>
       <div class="mt-8 flex flex-wrap items-center gap-4">
         <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'h-12 px-6 text-base')}>
@@ -84,7 +84,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
           href="/create-next-digest"
           class="inline-flex h-12 items-center rounded-lg border border-white/40 px-6 text-base font-medium text-white transition-colors hover:border-white hover:bg-white/10"
         >
-          Browse digests →
+          Browse projects →
         </a>
       </div>
     </div>
@@ -94,10 +94,10 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
   <div class="relative z-10 mx-auto mt-12 sm:mt-16 max-w-6xl px-6">
     <dl class="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_10px_30px_rgb(28_25_23/0.10)] lg:grid-cols-4">
       {[
-        { n: '3', l: 'Research areas covered' },
-        { n: '11+', l: 'Members' },
-        { n: 'Weekly', l: 'Journal club meetings' },
-        { n: 'All', l: 'Majors welcome' },
+        { n: '3+', l: 'Technical tracks & projects' },
+        { n: 'TBD', l: 'Active members' },
+        { n: 'Weekly', l: 'Coding workshops & meetings' },
+        { n: 'All', l: 'Majors & skill levels welcome' },
       ].map((f, i) => (
         <div class:list={['p-6 sm:p-7', i > 0 && 'border-border sm:border-l', i >= 2 && 'lg:border-l', 'border-t sm:border-t-0', i < 2 && 'sm:border-t-0', i === 2 && 'sm:border-t lg:border-t-0']}>
           <dt class="font-serif text-3xl sm:text-4xl leading-none font-bold tracking-tight text-primary">{f.n}</dt>
@@ -112,16 +112,16 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
     <div>
       <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Our Mission</p>
       <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] leading-[1.1] font-bold tracking-tight text-balance">
-        Making research approachable for students.
+        Building software and community at UW–Madison.
       </h2>
       <p class="mt-5 max-w-[52ch] text-lg text-muted-foreground">
-        As an undergraduate researcher, you are often thrown into research with little understanding of how it works. While vast knowledge is freely available online, finding, reading, and understanding primary literature can be challenging when you're new to research.
+        MadCoders is a student organization at UW–Madison dedicated to software engineering, web development, open-source collaboration, and technology skills.
       </p>
       <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
-        Equally important, and often more difficult, is communicating what you learn. The ability to critically analyze scientific papers and clearly explain complex concepts is essential whether you pursue graduate school, medicine, or industry.
+        Whether you are writing your first lines of code or shipping full-stack applications, MadCoders provides a welcoming space to collaborate, learn, and grow alongside fellow Badgers.
       </p>
       <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
-        Badger Journals helps undergraduates build these skills by reading and discussing research — making scientific literature approachable while helping students become stronger scientists and communicators.
+        Our weekly meetings cover coding tutorials, project collaboration, interview prep, and tech discussions designed to help every member build confidence as a developer.
       </p>
     </div>
     <div class="rounded-2xl border border-border/80 bg-[#f7f4ee] p-7 shadow-xs sm:p-8">
@@ -131,7 +131,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
       {nextMeeting ? (
         <div>
           <h3 class="font-serif text-2xl font-bold tracking-tight text-foreground">
-            {nextMeeting.title || 'Journal club meeting'}
+            {nextMeeting.title || 'MadCoders meeting'}
           </h3>
           <p class="mt-2 text-base font-bold text-primary">
             {[formatNextDate(nextMeeting.date), nextMeeting.time].filter(Boolean).join(' · ')}
@@ -155,7 +155,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
             Check back soon
           </p>
           <p class="mt-4 text-base leading-relaxed text-muted-foreground">
-            Location to be announced.
+            Location to be announced (TBD).
           </p>
           <a
             href="/meetings"
@@ -169,12 +169,12 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
   </section>
 
 
-  <!-- Digests -->
+  <!-- Digests / Projects -->
   <div class="border-y border-border bg-[#f7f4ee]">
     <section class="mx-auto max-w-6xl px-6 py-20">
-      <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Digests across the sciences</h2>
+      <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Projects & Technical Tracks</h2>
       <p class="mt-2 mb-9 max-w-[60ch] text-lg text-muted-foreground">
-        Student-led digests in the fields our members care about.
+        Student-led development tracks and coding projects.
       </p>
       <ul class="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
         {digests.map((a) => (
@@ -186,8 +186,8 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         ))}
         <li class="rounded-2xl border-2 border-dashed border-primary/40 bg-card p-7">
           <p class="mb-3 text-3xl" aria-hidden="true">✨</p>
-          <h3 class="font-serif text-xl font-bold">Your field</h3>
-          <p class="mt-2 text-muted-foreground">Passionate about an area not listed? Help us launch the next digest.</p>
+          <h3 class="font-serif text-xl font-bold">Your Project</h3>
+          <p class="mt-2 text-muted-foreground">Have an idea for a project or tech stack? Help us build the next track.</p>
           <a href="/create-next-digest" class="mt-3 inline-block font-semibold text-primary hover:underline">Get started →</a>
         </li>
       </ul>
@@ -201,7 +201,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         <div>
           <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Built by Badgers</h2>
           <p class="mt-2 max-w-[60ch] text-lg text-muted-foreground">
-            Undergraduates from different majors across UW–Madison.
+            Undergraduates from across UW–Madison.
           </p>
         </div>
         <a href="/team" class={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}>View the whole team →</a>
@@ -232,14 +232,13 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(120%_140%_at_85%_0%,var(--cardinal),transparent_60%)]"></div>
     <div class="mx-auto grid max-w-6xl gap-6 px-6 py-20 lg:grid-cols-[1.4fr_auto] lg:items-center">
       <div>
-        <h2 class="font-serif text-[clamp(2rem,4vw,3.1rem)] leading-tight font-bold tracking-tight">Start the next digest.</h2>
+        <h2 class="font-serif text-[clamp(2rem,4vw,3.1rem)] leading-tight font-bold tracking-tight">Build with MadCoders.</h2>
         <p class="mt-3 max-w-[48ch] text-lg text-white/85">
-          Every area of science deserves accessible, student-led digests. If you're
-          passionate about a field, we'll help you build it.
+          Have an idea for a software project or workshop? Join us and help bring it to life.
         </p>
       </div>
-      <a href="/create-next-digest" class="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-base font-semibold text-cardinal-900 transition-colors hover:bg-[#ffe9e9]">
-        Pitch a digest →
+      <a href="/contact?type=digest" class="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-base font-semibold text-cardinal-900 transition-colors hover:bg-[#ffe9e9]">
+        Pitch a project →
       </a>
     </div>
   </section>

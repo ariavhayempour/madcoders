@@ -42,8 +42,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     try {
       await insertSubmission(input);
-    } catch {
-      // Gracefully continue if database connection is pending / TBD
+    } catch (e) {
+      // Gracefully continue if Web3Forms sent the message, otherwise rethrow for 500
+      if (!web3Key || web3Key === 'TBD') {
+        throw e;
+      }
     }
     return json({ ok: true }, 201);
   } catch {

@@ -112,7 +112,7 @@ describe('T3 — logo in the masthead', () => {
     // Logo is decorative (alt="") because the adjacent wordmark text names the link.
     const logo = header.match(/<Image\b[\s\S]*?\/>/)?.[0] ?? '';
     expect(logo).toMatch(/alt=["']["']/);
-    expect(header).toMatch(/>Badger Journals<\/span>/);
+    expect(header).toMatch(/>MadCoders<\/span>/);
   });
 });
 
@@ -124,7 +124,7 @@ describe('T5 — OG / social image + meta', () => {
   it('emits absolute og:image and twitter:image plus a large-summary card', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(SEO, {
-      props: { title: 'Home', description: 'Badger Journals.', path: '/' },
+      props: { title: 'Home', description: 'MadCoders.', path: '/' },
     });
     expect(html).toMatch(/property=["']og:image["'][^>]*content=["']https?:\/\/[^"']+\/og\.png["']/);
     expect(html).toMatch(/name=["']twitter:image["'][^>]*content=["']https?:\/\/[^"']+\/og\.png["']/);
