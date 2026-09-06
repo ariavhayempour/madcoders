@@ -4,7 +4,7 @@ import { MAX_TITLE, MAX_TIME, MAX_LOCATION } from '../../src/lib/limits';
 
 const valid: EventInput = {
   date: '2026-09-12',
-  title: 'Kickoff & journal club intro',
+  title: 'Kickoff & coding workshop intro',
   time: '6:00 PM',
   location: 'Chamberlin Hall 2103',
 };
@@ -101,7 +101,7 @@ describe('slugifyEvent', () => {
   });
 
   it('lowercases and maps non-alphanumerics to hyphens', () => {
-    expect(slugifyEvent('2026-09-12', 'Kickoff & Journal Club Intro')).toBe('2026-09-12-kickoff-journal-club-intro');
+    expect(slugifyEvent('2026-09-12', 'Kickoff & Coding Workshop Intro')).toBe('2026-09-12-kickoff-coding-workshop-intro');
   });
 
   it('collapses repeated separators and trims leading/trailing hyphens', () => {
