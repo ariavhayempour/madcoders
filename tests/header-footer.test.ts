@@ -6,23 +6,26 @@ import header from '../src/components/Header.astro?raw';
 import footer from '../src/components/Footer.astro?raw';
 
 describe('branded Header (Tailwind + tokens)', () => {
-  it('sets the wordmark in the serif display family', () => {
-    expect(header).toMatch(/font-serif/);
+  it('sets the wordmark in the editor tab-bar mono family', () => {
+    expect(header).toMatch(/font-mono/);
   });
 
   it('applies a Cardinal (primary) brand accent', () => {
-    expect(header).toMatch(/\b(text-primary|bg-primary)\b/);
+    expect(header).toMatch(/\bbg-cardinal\b/);
   });
 
-  it('styles via design tokens, not raw hex', () => {
-    expect(header).not.toMatch(/#[0-9a-f]{3,6}/i);
+  it('styles via design tokens, with only the fixed macOS traffic-light hex as a literal-convention exception', () => {
+    const withoutTrafficLights = header.replace(/#ff5f57|#febc2e|#28c840/gi, '');
+    expect(withoutTrafficLights).not.toMatch(/#[0-9a-f]{3,6}/i);
   });
 
-  it('renders the wordmark and the primary nav', async () => {
+  it('renders the wordmark and the primary tab-bar nav', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(HeaderCmp);
-    expect(html).toContain('MadCoders');
-    for (const href of ['/', '/meetings', '/create-next-digest', '/contact']) {
+    expect(html).toContain('madcoders');
+    // Primary tabs mirror the file tree (index/meetings/team/contact); digest creation
+    // is reachable from the homepage's project list, not the top-level tab bar.
+    for (const href of ['/', '/meetings', '/team', '/contact']) {
       expect(html).toContain(`href="${href}"`);
     }
   });
@@ -36,7 +39,7 @@ describe('branded Footer (Tailwind + tokens)', () => {
   it('renders the wordmark and social links', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FooterCmp);
-    expect(html).toContain('MadCoders');
+    expect(html).toContain('madcoders');
     expect(html).toContain('https://www.instagram.com/madcoders/');
   });
 
@@ -44,6 +47,6 @@ describe('branded Footer (Tailwind + tokens)', () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FooterCmp);
     expect(html).toMatch(/href="\/team"/);
-    expect(html).toMatch(/<a[^>]*href="\/admin"[^>]*>[^<]*Admin/);
+    expect(html).toMatch(/<a[^>]*href="\/admin"[^>]*>[^<]*admin portal/);
   });
 });

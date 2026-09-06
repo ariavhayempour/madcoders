@@ -7,7 +7,6 @@ const reasons = [
   { title: 'General Inquiries', body: 'Questions about a meeting, a project, or the club? We read everything.' },
   { title: 'Start a project / track', body: 'Pitch a new coding project or technical track you want to build with MadCoders.' },
   { title: 'Join the team', body: 'Help run meetings, organize workshops, or lead a technical track alongside fellow Badgers.' },
-
 ];
 ---
 <BaseLayout
@@ -15,40 +14,70 @@ const reasons = [
   description="Get involved with MadCoders or propose a new project."
   path="/contact"
 >
-  <section class="border-b border-border bg-cream">
-    <div class="mx-auto max-w-6xl px-6 py-16 sm:py-20">
-      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Contact</p>
-      <h1 class="max-w-[16ch] font-serif text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.05] font-extrabold tracking-tight text-balance">
-        Get in touch.
-      </h1>
-      <p class="mt-4 max-w-[52ch] text-lg leading-relaxed text-muted-foreground">
-        Whether you want to join our team, propose a new project, or just say hello, we'd love to hear from you.
-      </p>
+  <div class="editor-grid">
+    <div class="gutter" aria-hidden="true" data-line-gutter></div>
+
+    <div class="min-w-0">
+      <div class="mx-auto max-w-4xl px-6 pt-14 sm:pt-16">
+        <p class="mb-3 font-mono text-[13px] text-editor-text-faint"># contact.md</p>
+        <h1 class="max-w-[16ch] text-[clamp(2.2rem,4.6vw,3.4rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-balance text-foreground">
+          Get in touch.
+        </h1>
+        <p class="mt-4 max-w-[52ch] text-lg leading-relaxed text-editor-text-dim">
+          Whether you want to join our team, propose a new project, or just say hello, we'd love to hear from you.
+        </p>
+      </div>
+
+      <div class="mx-auto grid max-w-4xl gap-x-16 gap-y-10 px-6 py-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+        <section aria-labelledby="ways-heading">
+          <p class="mb-2 font-mono text-[11px] text-cardinal-700">// ways</p>
+          <h2 id="ways-heading" class="text-2xl font-bold tracking-tight text-foreground">Ways to reach out</h2>
+          <dl class="mt-6 divide-y divide-editor-line border-y border-editor-line">
+            {reasons.map((r) => (
+              <div class="py-5">
+                <dt class="font-mono text-sm font-semibold text-foreground">{r.title}</dt>
+                <dd class="mt-1.5 max-w-[42ch] text-[0.95rem] leading-relaxed text-editor-text-dim">{r.body}</dd>
+              </div>
+            ))}
+          </dl>
+          <p class="mt-6 text-sm text-editor-text-dim">
+            Prefer social? Find us on{' '}
+            <a class="font-medium text-cardinal-700 underline-offset-4 hover:underline" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">Instagram (@madcoders)</a>{' '}
+            and{' '}
+            <a class="font-medium text-cardinal-700 underline-offset-4 hover:underline" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">LinkedIn (TBD)</a>.
+          </p>
+        </section>
+
+        <section aria-labelledby="form-heading">
+          <p class="mb-2 font-mono text-[11px] text-cardinal-700">// submit</p>
+          <h2 id="form-heading" class="text-2xl font-bold tracking-tight text-foreground">Send us a message</h2>
+          <InquiryForm />
+        </section>
+      </div>
     </div>
-  </section>
-
-  <div class="mx-auto grid max-w-6xl gap-x-16 gap-y-10 px-6 py-16 sm:py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-    <section aria-labelledby="ways-heading">
-      <h2 id="ways-heading" class="font-serif text-2xl font-bold tracking-tight">Ways to reach out</h2>
-      <dl class="mt-6 divide-y divide-border border-y border-border">
-        {reasons.map((r) => (
-          <div class="py-5">
-            <dt class="font-serif text-lg font-semibold tracking-tight">{r.title}</dt>
-            <dd class="mt-1 max-w-[42ch] text-[0.95rem] leading-relaxed text-muted-foreground">{r.body}</dd>
-          </div>
-        ))}
-      </dl>
-      <p class="mt-6 text-sm text-muted-foreground">
-        Prefer social? Find us on{' '}
-        <a class="font-medium text-primary underline-offset-4 hover:underline" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">Instagram (@madcoders)</a>{' '}
-        and{' '}
-        <a class="font-medium text-primary underline-offset-4 hover:underline" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">LinkedIn (TBD)</a>.
-      </p>
-    </section>
-
-    <section aria-labelledby="form-heading">
-      <h2 id="form-heading" class="font-serif text-2xl font-bold tracking-tight">Send us a message</h2>
-      <InquiryForm />
-    </section>
   </div>
 </BaseLayout>
+
+<style>
+  .editor-grid {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+  }
+  .gutter {
+    border-right: 1px solid var(--editor-line);
+    background: var(--editor);
+  }
+  @media (max-width: 640px) {
+    .editor-grid {
+      grid-template-columns: 1fr;
+    }
+    .gutter {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { mountLineGutter } from '../lib/line-gutter';
+  mountLineGutter();
+</script>

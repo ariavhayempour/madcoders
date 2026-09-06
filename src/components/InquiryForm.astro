@@ -16,20 +16,20 @@ interface Props {
 }
 const { type } = Astro.props;
 
-const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 text-base md:text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
+const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 font-mono text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-cardinal focus-visible:ring-[3px] focus-visible:ring-cardinal/30 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
 ---
-<form class="inquiry mt-6 grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-[0_10px_30px_rgb(28_25_23/0.06)] sm:p-8" method="post" action="/api/inquiry" novalidate data-inquiry>
+<form class="inquiry mt-6 grid gap-4 rounded-lg border border-editor-line bg-editor-2 p-6 sm:p-8" method="post" action="/api/inquiry" novalidate data-inquiry>
   {type && <input type="hidden" name="type" value={type} />}
 
   <div class="grid gap-4 sm:grid-cols-2">
     <div class="grid gap-1.5">
-      <label for={nameId} class="text-sm font-medium">Name</label>
+      <label for={nameId} class="font-mono text-xs font-medium text-editor-text-dim">name</label>
       <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={`h-10 ${field}`} />
       <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
     </div>
 
     <div class="grid gap-1.5">
-      <label for={emailId} class="text-sm font-medium">Email (@wisc.edu)</label>
+      <label for={emailId} class="font-mono text-xs font-medium text-editor-text-dim">email (@wisc.edu)</label>
       <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={`h-10 ${field}`} />
       <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
     </div>
@@ -37,7 +37,7 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
 
   {!type && (
     <div class="grid gap-1.5">
-      <label for={typeId} class="text-sm font-medium">What are you reaching out about?</label>
+      <label for={typeId} class="font-mono text-xs font-medium text-editor-text-dim">what are you reaching out about?</label>
       <select id={typeId} name="type" required class={`h-10 ${field}`}>
         <option value="inquiry">General Inquiry</option>
         <option value="digest">Start a Digest</option>
@@ -48,8 +48,8 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
 
   <div class="grid gap-1.5">
     <div class="flex items-baseline justify-between gap-2">
-      <label for={messageId} class="text-sm font-medium" id="inq-message-label">Message</label>
-      <span class="text-xs tabular-nums text-muted-foreground" id="inq-message-count" data-message-count>0 / {MAX_MESSAGE_WORDS} words</span>
+      <label for={messageId} class="font-mono text-xs font-medium text-editor-text-dim" id="inq-message-label">message</label>
+      <span class="font-mono text-xs tabular-nums text-editor-text-faint" id="inq-message-count" data-message-count>0 / {MAX_MESSAGE_WORDS} words</span>
     </div>
     <textarea id={messageId} name="message" required maxlength={MAX_MESSAGE} aria-describedby={`inq-message-count ${messageErrId}`} class={`resize-none overflow-hidden ${field}`} style="width:530px;max-width:100%;height:120px" placeholder="How can we help?"></textarea>
     <p class="text-sm text-destructive" id={messageErrId} data-error-for="message" hidden></p>
@@ -59,7 +59,7 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
     <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
   </div>
 
-  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-progress disabled:opacity-60">Send message</button>
+  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-md bg-cardinal px-5 font-sans text-sm font-semibold text-primary-foreground transition-colors hover:bg-cardinal-700 disabled:cursor-progress disabled:opacity-60">Send message</button>
 
   <p class="inquiry-status m-0 text-sm font-medium" id={statusId} role="status" aria-live="polite" data-status hidden></p>
 </form>
@@ -217,6 +217,6 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
 </script>
 
 <style>
-  .inquiry-status[data-tone='ok'] { color: var(--cardinal-700); }
+  .inquiry-status[data-tone='ok'] { color: var(--success); }
   .inquiry-status[data-tone='error'] { color: var(--destructive); }
 </style>

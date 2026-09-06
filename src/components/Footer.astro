@@ -1,45 +1,50 @@
 ---
-// Shared footer, identical on every page; Team lives here (moved out of the primary nav).
+// Shared footer, identical on every public page; Team lives here (moved out of the primary nav).
 const explore = [
-  { href: '/', label: 'Home' },
-  { href: '/meetings', label: 'Meetings' },
-  { href: '/create-next-digest', label: 'Digests' },
-  { href: '/team', label: 'Team' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/', label: 'index.md' },
+  { href: '/meetings', label: 'meetings.md' },
+  { href: '/team', label: 'team.json' },
+  { href: '/contact', label: 'contact.md' },
 ];
+const current = Astro.url.pathname;
+const isAdmin = current.startsWith('/admin');
 ---
-<footer class="bg-stone-950 text-white/70">
-  <div class="mx-auto grid max-w-6xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr]">
-    <div>
-      <div class="mb-4">
-        <span class="font-serif text-xl font-bold text-white">MadCoders</span>
+{!isAdmin && (
+  <footer class="border-t border-editor-line bg-editor-2 text-editor-text-dim">
+    <div class="mx-auto grid max-w-6xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr]">
+      <div>
+        <div class="mb-4 flex items-center gap-2 font-mono text-sm font-semibold text-editor-text">
+          <span class="grid size-5 place-items-center rounded bg-cardinal font-mono text-[10px] font-bold text-primary-foreground">{'{}'}</span>
+          madcoders
+        </div>
+        <p class="max-w-[38ch] text-sm leading-relaxed">
+          A student-run coding organization at UW–Madison building projects, sharing technical knowledge, and fostering software developers.
+        </p>
+        <p class="mt-4 font-mono text-xs text-editor-text-faint">Madison, WI, 53706</p>
       </div>
-      <p class="max-w-[34ch] text-sm leading-relaxed">
-        A student-run coding organization at UW–Madison building projects, sharing technical knowledge, and fostering software developers.
-      </p>
-      <p class="mt-4 text-sm">Madison, WI, 53706</p>
+      <nav aria-label="Explore">
+        <h2 class="mb-4 font-mono text-[11px] font-semibold tracking-[0.1em] text-editor-text-faint uppercase">// explore</h2>
+        <ul class="space-y-2 font-mono text-sm">
+          {explore.map((l) => (
+            <li><a class="transition-colors hover:text-editor-text" href={l.href}>{l.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+      <nav aria-label="Connect">
+        <h2 class="mb-4 font-mono text-[11px] font-semibold tracking-[0.1em] text-editor-text-faint uppercase">// connect</h2>
+        <ul class="space-y-2 font-mono text-sm">
+          <li><a class="transition-colors hover:text-editor-text" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">instagram</a></li>
+          <li><a class="transition-colors hover:text-editor-text" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">linkedin (TBD)</a></li>
+        </ul>
+      </nav>
     </div>
-    <nav aria-label="Explore">
-      <h2 class="mb-4 text-xs font-bold tracking-[0.14em] text-white uppercase">Explore</h2>
-      <ul class="space-y-2 text-sm">
-        {explore.map((l) => (
-          <li><a class="transition-colors hover:text-white" href={l.href}>{l.label}</a></li>
-        ))}
-      </ul>
-    </nav>
-    <nav aria-label="Connect">
-      <h2 class="mb-4 text-xs font-bold tracking-[0.14em] text-white uppercase">Connect</h2>
-      <ul class="space-y-2 text-sm">
-        <li><a class="transition-colors hover:text-white" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">Instagram</a></li>
-        <li><a class="transition-colors hover:text-white" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">LinkedIn (TBD)</a></li>
-      </ul>
-    </nav>
-  </div>
-  <div class="border-t border-white/10">
-    <div class="mx-auto flex max-w-6xl flex-col items-start gap-2 px-6 py-5 text-sm text-white/50 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-      <span>For educational purposes only</span>
-      <a class="transition-colors hover:text-white" href="https://github.com/ariavhayempour/madcoders" target="_blank" rel="noopener">GitHub - MadCoders</a>
-      <a class="transition-colors hover:text-white" href="/admin">Admin Portal</a>
+    <div class="border-t border-editor-line">
+      <div class="mx-auto flex max-w-6xl flex-col items-start gap-2 px-6 py-2.5 font-mono text-xs text-editor-text-faint sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <span>main</span>
+        <span class="hidden sm:inline">for educational purposes only</span>
+        <a class="transition-colors hover:text-editor-text" href="https://github.com/ariavhayempour/madcoders" target="_blank" rel="noopener">github</a>
+        <a class="transition-colors hover:text-editor-text" href="/admin">admin portal</a>
+      </div>
     </div>
-  </div>
-</footer>
+  </footer>
+)}

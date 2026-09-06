@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>MadCoders — IDE Window</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1e1f22; --bg-2:#26282b; --bg-3:#2b2d30; --bg-editor:#1e1f22;
+    --border:#363739;
+    --text:#dfe1e5; --text-dim:#9da0a8; --text-faint:#63666b;
+    --cardinal:#e0342e; --cardinal-dim:#7a1c19;
+    --line-active:#2b3a52;
+    --add:#4a9d5c; --del:#e05561; --key:#cf8e6d; --str:#6aab73; --fn:#56a8f5; --com:#7a7e85; --var:#c77dbb;
+    --mono:"JetBrains Mono", ui-monospace, monospace;
+    --sans:"Inter", ui-sans-serif, system-ui, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{background:var(--bg);}
+  body{background:var(--bg); color:var(--text); font-family:var(--sans); -webkit-font-smoothing:antialiased;}
+
+  .ide{display:grid; grid-template-columns:220px 1fr; grid-template-rows:38px 38px 1fr 24px; height:100vh;}
+
+  /* Title bar */
+  .titlebar{
+    grid-column:1/-1; display:flex; align-items:center; gap:8px;
+    padding:0 14px; background:var(--bg-3); border-bottom:1px solid var(--border);
+  }
+  .tb-dot{width:11px; height:11px; border-radius:50%;}
+  .tb-dot.r{background:#ff5f57;} .tb-dot.y{background:#febc2e;} .tb-dot.g{background:#28c840;}
+  .tb-title{flex:1; text-align:center; font-size:12px; color:var(--text-dim); font-family:var(--mono);}
+
+  /* Tab bar = page nav */
+  .tabbar{
+    grid-column:2/3; display:flex; align-items:stretch; background:var(--bg-2); border-bottom:1px solid var(--border);
+    overflow-x:auto;
+  }
+  .tab{
+    display:flex; align-items:center; gap:8px; padding:0 18px; font-family:var(--mono); font-size:12.5px;
+    color:var(--text-faint); border-right:1px solid var(--border); text-decoration:none; white-space:nowrap;
+    cursor:pointer;
+  }
+  .tab.active{color:var(--text); background:var(--bg-editor); border-top:2px solid var(--cardinal); position:relative; top:-1px;}
+  .tab .dot{width:6px; height:6px; border-radius:50%; background:var(--cardinal); opacity:0;}
+  .tab.active .dot{opacity:1;}
+  .tab-rsvp{margin-left:auto; display:flex; align-items:center;}
+  .rsvp-tab{
+    font-family:var(--mono); font-size:12.5px; font-weight:600; color:#fff; background:var(--cardinal);
+    padding:0 20px; display:flex; align-items:center; text-decoration:none; height:100%;
+  }
+  .rsvp-tab:hover{background:var(--cardinal-dim);}
+
+  /* Sidebar file tree = section nav */
+  .sidebar{
+    grid-row:2/5; background:var(--bg-3); border-right:1px solid var(--border);
+    padding:14px 0; font-size:13px; overflow-y:auto;
+  }
+  .sb-section{padding:4px 14px; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); margin-top:14px; margin-bottom:4px;}
+  .sb-section:first-child{margin-top:0;}
+  .sb-item{
+    display:flex; align-items:center; gap:8px; padding:6px 14px 6px 22px;
+    color:var(--text-dim); text-decoration:none; cursor:pointer;
+  }
+  .sb-item:hover{background:var(--bg-2);}
+  .sb-item.active{background:var(--line-active); color:#fff;}
+  .sb-item .icon{width:14px; text-align:center; font-size:12px;}
+  .sb-brand{
+    display:flex; align-items:center; gap:10px; padding:0 14px 14px; margin-bottom:8px; border-bottom:1px solid var(--border);
+  }
+  .sb-brand-mark{width:24px; height:24px; border-radius:6px; background:var(--cardinal); display:grid; place-items:center; font-family:var(--mono); font-weight:700; font-size:12px;}
+  .sb-brand-name{font-weight:700; font-size:13px;}
+
+  /* Editor pane */
+  .editor{
+    grid-row:3/4; overflow-y:auto; background:var(--bg-editor);
+    display:grid; grid-template-columns:52px 1fr;
+  }
+  .gutter{
+    background:var(--bg-editor); border-right:1px solid var(--border);
+    font-family:var(--mono); font-size:12.5px; color:var(--text-faint); text-align:right;
+    padding:0 12px 0 0; line-height:1.9; user-select:none; padding-top:64px;
+  }
+  .gutter .ln{height:1.9em;}
+  .gutter .ln.hero-ln{height:auto;}
+
+  .content{padding:0 56px 120px 40px; max-width:900px;}
+
+  /* Hero block, rendered as code */
+  .code-block{padding-top:56px; font-family:var(--mono); font-size:14.5px; line-height:1.9;}
+  .k{color:var(--key);} .s{color:var(--str);} .f{color:var(--fn);} .c{color:var(--com);} .v{color:var(--var);} .p{color:var(--text-faint);}
+  .cursor{display:inline-block; width:8px; height:17px; background:var(--cardinal); vertical-align:text-bottom; animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  h1{
+    font-family:var(--sans); font-size:clamp(2.4rem,5vw,3.6rem); font-weight:800; letter-spacing:-0.03em;
+    color:#fff; margin:28px 0 4px; line-height:1.08;
+  }
+  h1 .accent{color:var(--cardinal);}
+  .dek{font-family:var(--sans); font-size:1.15rem; color:var(--text-dim); max-width:56ch; margin:16px 0 32px;}
+  .actions{display:flex; gap:12px; margin-bottom:56px; font-family:var(--sans);}
+  .btn-primary{
+    font-size:14px; font-weight:600; color:#fff; background:var(--cardinal);
+    padding:12px 24px; border-radius:6px; text-decoration:none;
+  }
+  .btn-primary:hover{background:var(--cardinal-dim);}
+  .btn-secondary{
+    font-size:14px; font-weight:600; color:var(--text); background:transparent;
+    border:1px solid var(--border); padding:11px 24px; border-radius:6px; text-decoration:none;
+  }
+
+  /* Inline "panel" comment blocks for content sections */
+  .panel{
+    font-family:var(--sans); background:var(--bg-3); border:1px solid var(--border); border-radius:8px;
+    padding:28px 32px; margin:8px 0 40px;
+  }
+  .panel-label{font-family:var(--mono); font-size:11px; color:var(--cardinal); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px;}
+  .panel h2{font-size:1.5rem; font-weight:800; color:#fff; letter-spacing:-0.01em;}
+  .panel p{margin-top:12px; color:var(--text-dim); font-size:1rem; max-width:60ch;}
+
+  .next-meeting{
+    font-family:var(--mono); font-size:13.5px; margin:8px 0 48px;
+    border:1px solid var(--border); border-radius:8px; overflow:hidden;
+  }
+  .nm-head{background:var(--bg-3); padding:10px 18px; color:var(--text-dim); border-bottom:1px solid var(--border); display:flex; justify-content:space-between;}
+  .nm-head .live{color:var(--add);}
+  .nm-row{display:flex; justify-content:space-between; padding:12px 18px; border-bottom:1px solid var(--border);}
+  .nm-row:last-of-type{border-bottom:none;}
+  .nm-row .k2{color:var(--text-faint);}
+  .nm-row .v2{color:var(--text); font-weight:600;}
+  .nm-cta{display:block; text-align:center; padding:14px; background:var(--cardinal); color:#fff; text-decoration:none; font-weight:700;}
+
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:8px 0 48px; font-family:var(--sans);}
+  .track{background:var(--bg-3); border:1px solid var(--border); border-radius:8px; padding:22px;}
+  .track-tag{font-family:var(--mono); font-size:11px; color:var(--cardinal);}
+  .track-title{margin-top:10px; font-weight:700; font-size:1.02rem; color:#fff;}
+  .track-desc{margin-top:8px; color:var(--text-dim); font-size:0.88rem;}
+
+  .roster-line{font-family:var(--mono); font-size:13.5px; padding:10px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;}
+  .roster-line .rname{color:#fff; font-weight:600;}
+  .roster-line .rrole{color:var(--cardinal);}
+  .roster-line .rmajor{color:var(--text-faint);}
+
+  .end-comment{font-family:var(--mono); color:var(--com); font-size:13.5px; margin-top:48px;}
+
+  /* Status bar */
+  .statusbar{
+    grid-column:1/-1; background:var(--cardinal); color:#fff;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 14px; font-family:var(--mono); font-size:11px;
+  }
+
+  @media (max-width:860px){
+    .ide{grid-template-columns:1fr; grid-template-rows:38px 38px 1fr 24px;}
+    .sidebar{display:none;}
+    .gutter{display:none;}
+    .editor{grid-template-columns:1fr;}
+    .content{padding:0 20px 80px;}
+    .tabbar{grid-column:1/-1;}
+    .grid3{grid-template-columns:1fr;}
+    .actions{flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body>
+
+<div class="ide">
+  <div class="titlebar">
+    <span class="tb-dot r"></span><span class="tb-dot y"></span><span class="tb-dot g"></span>
+    <span class="tb-title">madcoders — ~/uw-madison/madcoders</span>
+  </div>
+
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-mark">{ }</div>
+      <div class="sb-brand-name">madcoders</div>
+    </div>
+    <div class="sb-section">public</div>
+    <a class="sb-item active"><span class="icon">📄</span>index.md</a>
+    <a class="sb-item"><span class="icon">📅</span>meetings.md</a>
+    <a class="sb-item"><span class="icon">📁</span>projects/</a>
+    <a class="sb-item"><span class="icon">👥</span>team.json</a>
+    <a class="sb-item"><span class="icon">✉️</span>contact.md</a>
+    <div class="sb-section">meta</div>
+    <a class="sb-item"><span class="icon">⚙️</span>README.md</a>
+    <a class="sb-item"><span class="icon">📜</span>LICENSE</a>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab active"><span class="dot"></span>index.md</div>
+    <div class="tab">meetings.md</div>
+    <div class="tab">team.json</div>
+    <div class="tab-rsvp"><a class="rsvp-tab" href="#">● RSVP</a></div>
+  </div>
+
+  <div class="editor">
+    <div class="gutter">
+      <div class="ln hero-ln" style="height:340px;">01<br>02<br>03<br>04<br>05<br>06<br>07<br>08<br>09<br>10<br>11<br>12<br>13<br>14</div>
+      <div class="ln" style="height:80px;">15<br>16<br>17<br>18</div>
+      <div class="ln" style="height:180px;">19<br>20<br>21<br>22<br>23<br>24<br>25<br>26</div>
+      <div class="ln" style="height:140px;">27<br>28<br>29<br>30<br>31<br>32</div>
+      <div class="ln" style="height:220px;">33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41</div>
+      <div class="ln" style="height:260px;">42<br>43<br>44<br>45<br>46<br>47<br>48<br>49<br>50<br>51</div>
+      <div class="ln" style="height:160px;">52<br>53<br>54<br>55<br>56<br>57</div>
+    </div>
+    <div class="content">
+      <div class="code-block">
+<span class="c"># index.md</span><br>
+<span class="p">---</span><br>
+<span class="k">org:</span> <span class="s">"MadCoders"</span><br>
+<span class="k">school:</span> <span class="s">"University of Wisconsin–Madison"</span><br>
+<span class="k">status:</span> <span class="f">recruiting</span><span class="p">(</span><span class="s">"fall-2026"</span><span class="p">)</span><br>
+<span class="p">---</span><span class="cursor"></span>
+      </div>
+
+      <h1>Student-run.<br>Always <span class="accent">shipping.</span></h1>
+      <p class="dek">MadCoders is UW–Madison's student software club — weekly builds, real projects, and a community that ships. No experience required.</p>
+      <div class="actions">
+        <a class="btn-primary" href="#">RSVP for next meeting →</a>
+        <a class="btn-secondary" href="#">Browse projects</a>
+      </div>
+
+      <div class="panel-label">// mission</div>
+      <div class="panel">
+        <h2>Building software and community at UW–Madison.</h2>
+        <p>MadCoders is a student organization dedicated to software engineering, open-source collaboration, and technology skills — whether you're writing your first lines of code or shipping full-stack applications. Our weekly meetings cover tutorials, project collaboration, interview prep, and tech discussions.</p>
+      </div>
+
+      <div class="panel-label">// meetings.md</div>
+      <div class="next-meeting">
+        <div class="nm-head"><span>next_session</span><span class="live">● open</span></div>
+        <div class="nm-row"><span class="k2">title</span><span class="v2">Full-Stack Foundations</span></div>
+        <div class="nm-row"><span class="k2">date</span><span class="v2">Tue, Sep 9</span></div>
+        <div class="nm-row"><span class="k2">time</span><span class="v2">7:00 PM</span></div>
+        <div class="nm-row"><span class="k2">room</span><span class="v2">CS 1240</span></div>
+        <a class="nm-cta" href="#">RSVP →</a>
+      </div>
+
+      <div class="panel-label">// projects/</div>
+      <div class="grid3">
+        <div class="track">
+          <div class="track-tag">full-stack/</div>
+          <div class="track-title">Foundations</div>
+          <div class="track-desc">Ship a production web app from database to deploy.</div>
+        </div>
+        <div class="track">
+          <div class="track-tag">systems/</div>
+          <div class="track-title">Infra & Tools</div>
+          <div class="track-desc">CLIs, containers, and the tools that run production.</div>
+        </div>
+        <div class="track">
+          <div class="track-tag">ml/</div>
+          <div class="track-title">Applied ML</div>
+          <div class="track-desc">Models, pipelines, and shipping ML that works.</div>
+        </div>
+      </div>
+
+      <div class="panel-label">// team.json</div>
+      <div class="next-meeting" style="margin-bottom:8px;">
+        <div class="roster-line" style="padding:12px 18px;"><span class="rname">Ari Hayempour</span><span class="rrole">president</span><span class="rmajor">Computer Science</span></div>
+        <div class="roster-line" style="padding:12px 18px;"><span class="rname">Jordan Lee</span><span class="rrole">vp</span><span class="rmajor">Data Science</span></div>
+        <div class="roster-line" style="padding:12px 18px; border-bottom:none;"><span class="rname">Sam Patel</span><span class="rrole">events</span><span class="rmajor">CS + Math</span></div>
+      </div>
+
+      <div class="end-comment">// EOF — pitch a project: <a href="#" style="color:var(--cardinal); text-decoration:underline;">madcoders.org/contact</a></div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span>main</span>
+    <span>UTF-8 · Markdown</span>
+    <span>Ln 57, Col 1</span>
+  </div>
+</div>
+
+</body>
+</html>

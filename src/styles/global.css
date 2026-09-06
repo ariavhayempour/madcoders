@@ -7,9 +7,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-heading: var(--font-sans);
+  /* Admin (product-register) keeps its original editorial serif; out of scope for this redesign. */
   --font-serif: "Spectral", Georgia, "Times New Roman", serif;
-  --font-heading: var(--font-serif);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -39,7 +41,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Brand + editorial tokens */
+  /* Brand + editor-world tokens */
   --color-cardinal: var(--cardinal);
   --color-cardinal-700: var(--cardinal-700);
   --color-cardinal-900: var(--cardinal-900);
@@ -48,9 +50,25 @@
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-paper: var(--background);
+  --color-rule: var(--border);
+  /* Admin-only legacy tokens (product-register, unaffected by this redesign) */
   --color-cream: var(--cream);
   --color-canvas: var(--canvas);
-  --color-rule: var(--border);
+
+  /* Editor surface ramp (the IDE chrome ground, independent of page background) */
+  --color-editor: var(--editor);
+  --color-editor-2: var(--editor-2);
+  --color-editor-3: var(--editor-3);
+  --color-editor-line: var(--editor-line);
+  --color-editor-text: var(--editor-text);
+  --color-editor-text-dim: var(--editor-text-dim);
+  --color-editor-text-faint: var(--editor-text-faint);
+
+  /* Syntax accents used sparingly for data/code coloring */
+  --color-syn-key: var(--syn-key);
+  --color-syn-str: var(--syn-str);
+  --color-syn-fn: var(--syn-fn);
+  --color-syn-com: var(--syn-com);
 
   /* Functional status (badges, deltas) */
   --color-success: var(--success);
@@ -71,16 +89,85 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
 
-  /* Warm neutrals + UW Cardinal */
+  /* Public pages commit to the editor's light ground (white/off-white, Cardinal red + dark ink);
+     admin (product-register) keeps a separate theme untouched via .admin-theme. */
+  --background: oklch(0.985 0.002 264);
+  --foreground: oklch(0.2 0.006 264);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.006 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.006 264);
+
+  --primary: oklch(0.5 0.19 26);
+  --primary-foreground: oklch(0.99 0.003 60);
+  --secondary: oklch(0.96 0.003 264);
+  --secondary-foreground: oklch(0.28 0.006 264);
+  --muted: oklch(0.965 0.003 264);
+  --muted-foreground: oklch(0.46 0.008 264);
+  --accent: oklch(0.96 0.003 264);
+  --accent-foreground: oklch(0.28 0.006 264);
+  --destructive: oklch(0.5 0.21 26);
+  --border: oklch(0.9 0.004 264);
+  --input: oklch(0.9 0.004 264);
+  --ring: oklch(0.5 0.19 26);
+
+  /* Brand ramp */
+  --cardinal: oklch(0.5 0.19 26);
+  --cardinal-700: oklch(0.42 0.17 26);
+  --cardinal-900: oklch(0.3 0.13 26);
+  --cardinal-tint: oklch(0.96 0.03 24);
+  --ink-2: oklch(0.46 0.008 264);
+  --ink-3: oklch(0.63 0.008 264);
+  --cream: oklch(0.965 0.008 80);
+  --canvas: oklch(0.972 0.004 75);
+
+  /* Editor surface ramp: titlebar / tabbar / panel steps, white to slightly deeper off-white */
+  --editor: oklch(0.985 0.002 264);
+  --editor-2: oklch(0.965 0.003 264);
+  --editor-3: oklch(0.93 0.004 264);
+  --editor-line: oklch(0.88 0.005 264);
+  --editor-text: oklch(0.2 0.006 264);
+  --editor-text-dim: oklch(0.44 0.008 264);
+  --editor-text-faint: oklch(0.6 0.008 264);
+
+  /* Syntax accents (used only inside code/data panels, never as page chrome) */
+  --syn-key: oklch(0.52 0.14 40);
+  --syn-str: oklch(0.5 0.13 150);
+  --syn-fn: oklch(0.5 0.15 300);
+  --syn-com: oklch(0.58 0.008 264);
+
+  /* Status (text values dark enough for badge text on their tints) */
+  --success: oklch(0.44 0.13 150);
+  --success-foreground: oklch(0.99 0.003 60);
+  --success-tint: oklch(0.94 0.04 155);
+  --warn: oklch(0.46 0.11 70);
+  --warn-foreground: oklch(0.99 0.003 60);
+  --warn-tint: oklch(0.94 0.05 75);
+  --info: oklch(0.44 0.15 260);
+  --info-foreground: oklch(0.99 0.003 60);
+  --info-tint: oklch(0.94 0.03 255);
+
+  /* Admin sidebar keeps its own light, product-register theme (out of scope for this redesign) */
+  --sidebar: oklch(0.988 0.003 80);
+  --sidebar-foreground: oklch(0.46 0.008 65);
+  --sidebar-primary: oklch(0.514 0.211 28);
+  --sidebar-primary-foreground: oklch(0.99 0.003 60);
+  --sidebar-accent: oklch(0.955 0.028 24);
+  --sidebar-accent-foreground: oklch(0.42 0.188 28);
+  --sidebar-border: oklch(0.9 0.008 75);
+  --sidebar-ring: oklch(0.514 0.211 28);
+}
+
+/* Admin pages (product-register) are explicitly out of this redesign's scope and keep the original light theme. */
+.admin-theme {
   --background: oklch(1 0 0);
   --foreground: oklch(0.23 0.006 55);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.23 0.006 55);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.23 0.006 55);
-
   --primary: oklch(0.514 0.211 28);
   --primary-foreground: oklch(0.99 0.003 60);
   --secondary: oklch(0.965 0.008 80);
@@ -93,37 +180,9 @@
   --border: oklch(0.9 0.008 75);
   --input: oklch(0.9 0.008 75);
   --ring: oklch(0.514 0.211 28);
-
-  /* Brand ramp */
-  --cardinal: oklch(0.514 0.211 28);
-  --cardinal-700: oklch(0.42 0.188 28);
-  --cardinal-900: oklch(0.32 0.14 28);
   --cardinal-tint: oklch(0.955 0.028 24);
-  --ink-2: oklch(0.46 0.008 65);
-  --ink-3: oklch(0.61 0.012 65);
   --cream: oklch(0.965 0.008 80);
   --canvas: oklch(0.972 0.004 75);
-
-  /* Status (text values dark enough for badge text on their tints) */
-  --success: oklch(0.48 0.13 150);
-  --success-foreground: oklch(0.99 0.003 60);
-  --success-tint: oklch(0.95 0.04 155);
-  --warn: oklch(0.5 0.11 70);
-  --warn-foreground: oklch(0.99 0.003 60);
-  --warn-tint: oklch(0.95 0.05 75);
-  --info: oklch(0.47 0.15 260);
-  --info-foreground: oklch(0.99 0.003 60);
-  --info-tint: oklch(0.95 0.03 255);
-
-  /* Admin sidebar */
-  --sidebar: oklch(0.988 0.003 80);
-  --sidebar-foreground: oklch(0.46 0.008 65);
-  --sidebar-primary: oklch(0.514 0.211 28);
-  --sidebar-primary-foreground: oklch(0.99 0.003 60);
-  --sidebar-accent: oklch(0.955 0.028 24);
-  --sidebar-accent-foreground: oklch(0.42 0.188 28);
-  --sidebar-border: oklch(0.9 0.008 75);
-  --sidebar-ring: oklch(0.514 0.211 28);
 }
 
 @layer base {
@@ -137,7 +196,28 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
-  h1, h2, h3, h4 {
-    font-family: var(--font-serif);
+  ::selection {
+    background: var(--cardinal);
+    color: var(--primary-foreground);
+  }
+}
+
+@layer components {
+  [data-line-gutter] {
+    display: flex;
+    flex-direction: column;
+    padding-top: 2px;
+    overflow: hidden;
+  }
+  .gutter-ln {
+    display: block;
+    height: 24px;
+    line-height: 24px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--editor-text-faint);
+    text-align: right;
+    padding-right: 14px;
+    user-select: none;
   }
 }

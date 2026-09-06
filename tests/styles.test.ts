@@ -22,9 +22,10 @@ describe('global.css — Tailwind entry + brand theme', () => {
     expect(global).toMatch(/--cardinal:\s*oklch\(/);
   });
 
-  it('wires the Spectral + Hanken Grotesk font tokens', () => {
+  it('wires the Geist (sans + mono) font tokens for the public editor world, keeping Spectral for admin', () => {
+    expect(global).toMatch(/--font-sans:\s*["']Geist Variable["']/);
+    expect(global).toMatch(/--font-mono:\s*["']Geist Mono Variable["']/);
     expect(global).toMatch(/--font-serif:\s*["']Spectral["']/);
-    expect(global).toMatch(/--font-sans:\s*["']Hanken Grotesk Variable["']/);
   });
 
   it('makes no external font requests in the styling layer', () => {
@@ -44,14 +45,15 @@ describe('BaseLayout wires the styling layer once', () => {
     expect(layout).toMatch(/import\s+['"][^'"]*styles\/global\.css['"]/);
   });
 
-  it('self-hosts Spectral (serif) and Hanken Grotesk (sans) via @fontsource', () => {
+  it('self-hosts Geist (sans + mono) via @fontsource, keeping Spectral for the admin surface', () => {
+    expect(layout).toMatch(/@fontsource-variable\/geist['"]/);
+    expect(layout).toMatch(/@fontsource-variable\/geist-mono/);
     expect(layout).toMatch(/@fontsource\/spectral\/latin-700\.css/);
-    expect(layout).toMatch(/@fontsource\/spectral\/latin-600-italic\.css/);
-    expect(layout).toMatch(/@fontsource-variable\/hanken-grotesk/);
   });
 
-  it('no longer ships the retired Playfair/Inter families', () => {
+  it('no longer ships the retired Playfair/Inter/Hanken families', () => {
     expect(layout).not.toMatch(/@fontsource\/playfair-display/);
     expect(layout).not.toMatch(/@fontsource\/inter/);
+    expect(layout).not.toMatch(/@fontsource-variable\/hanken-grotesk/);
   });
 });

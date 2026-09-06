@@ -2,12 +2,8 @@
 // Per-request SSR so the upcoming-meetings rail reflects the events table without a redeploy.
 export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { Image } from 'astro:assets';
-import campus from '../assets/images/campus.jpg';
-import { buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { team } from '../data/team';
 import { digests } from '../data/digests';
+import { team } from '../data/team';
 import { listEvents } from '../db/event';
 import { splitMeetings, type MeetingView } from '../lib/split-meetings';
 import { REVALIDATE_CACHE_CONTROL } from '../lib/cache-headers';
@@ -36,240 +32,206 @@ const formatNextDate = (isoDate: string) => {
   }).format(d);
 };
 
-
-
-// Flat roster for the marquee; drop unfilled placeholder slots.
-const members = team
-  .flatMap((g) => g.members)
-  .filter((m) => m.name !== 'TODO' && m.major !== 'TODO');
 const initials = (name: string) =>
   name.split(/[\s&]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
-const marquee = [...members, ...members]; // duplicated for a seamless loop
+
+// Flat roster for the front-page listing; drop unfilled placeholder slots, cap to a handful.
+const members = team
+  .flatMap((g) => g.members)
+  .filter((m) => m.name !== 'TBD' && m.major !== 'TBD')
+  .slice(0, 4);
 ---
 <BaseLayout
   title="MadCoders"
   description="UW-Madison Madison Coders Club — building software, learning together, and exploring technology."
   path="/"
 >
-  <!-- Hero -->
-  <section class="relative isolate overflow-hidden text-white">
-    <Image
-      class="absolute inset-0 -z-10 h-full w-full object-cover object-[center_40%]"
-      src={campus}
-      alt="Students on the UW–Madison campus at dusk"
-      widths={[480, 800, 1200, 1650]}
-      sizes="100vw"
-      loading="eager"
-      fetchpriority="high"
-    />
-    <div class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgb(20_8_8/0.18),rgb(15_4_4/0.55)_55%,rgb(90_3_6/0.82)),linear-gradient(90deg,rgb(15_4_4/0.62),rgb(15_4_4/0.05)_70%)]"></div>
-    <div class="mx-auto max-w-6xl px-6 py-16 sm:py-20 lg:py-24">
-      <p class="mb-4 flex items-center gap-3 text-xs font-bold tracking-[0.18em] text-[#ffd9d9] uppercase">
-        <span class="h-0.5 w-7 bg-[#ff9a9a]"></span>University of Wisconsin–Madison
-      </p>
-      <h1 class="max-w-[15ch] font-serif text-[clamp(2.75rem,6vw,5rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-balance">
-        MadCoders
-      </h1>
-      <p class="mt-4 font-serif text-[clamp(1.25rem,2.4vw,1.75rem)] font-semibold text-white/95">
-        Coding Made <em class="font-semibold italic">Approachable</em>.
-      </p>
-      <p class="mt-4 max-w-[46ch] text-base sm:text-lg leading-relaxed text-white/80">
-        We build projects, host technical workshops, and connect student developers at UW–Madison.
-      </p>
-      <div class="mt-8 flex flex-wrap items-center gap-4">
-        <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'h-12 px-6 text-base')}>
-          See upcoming meetings
-        </a>
-        <a
-          href="/create-next-digest"
-          class="inline-flex h-12 items-center rounded-lg border border-white/40 px-6 text-base font-medium text-white transition-colors hover:border-white hover:bg-white/10"
-        >
-          Browse projects →
-        </a>
-      </div>
-    </div>
-  </section>
+  <div class="editor-grid">
+    <!-- Persistent line-number gutter running the page's full content height -->
+    <div class="gutter" aria-hidden="true" data-line-gutter></div>
 
-  <!-- Facts -->
-  <div class="relative z-10 mx-auto mt-12 sm:mt-16 max-w-6xl px-6">
-    <dl class="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_10px_30px_rgb(28_25_23/0.10)] lg:grid-cols-4">
-      {[
-        { n: '3+', l: 'Technical tracks & projects' },
-        { n: 'TBD', l: 'Active members' },
-        { n: 'Weekly', l: 'Coding workshops & meetings' },
-        { n: 'All', l: 'Majors & skill levels welcome' },
-      ].map((f, i) => (
-        <div class:list={['p-6 sm:p-7', i > 0 && 'border-border sm:border-l', i >= 2 && 'lg:border-l', 'border-t sm:border-t-0', i < 2 && 'sm:border-t-0', i === 2 && 'sm:border-t lg:border-t-0']}>
-          <dt class="font-serif text-3xl sm:text-4xl leading-none font-bold tracking-tight text-primary">{f.n}</dt>
-          <dd class="mt-2 text-sm font-medium text-muted-foreground">{f.l}</dd>
-        </div>
-      ))}
-    </dl>
-  </div>
+    <div class="editor-col">
+      <!-- Front-matter block -->
+      <div class="mx-auto max-w-3xl px-6 pt-14 sm:pt-16">
+        <pre class="frontmatter font-mono text-[13px] leading-[1.9] text-editor-text-dim"><span class="text-editor-text-faint"># index.md</span>
+<span class="text-editor-text-faint">---</span>
+<span class="text-syn-key">org:</span> <span class="text-syn-str">"MadCoders"</span>
+<span class="text-syn-key">school:</span> <span class="text-syn-str">"University of Wisconsin–Madison"</span>
+<span class="text-syn-key">status:</span> <span class="text-syn-fn">recruiting</span><span class="text-editor-text-faint">(</span><span class="text-syn-str">"fall-2026"</span><span class="text-editor-text-faint">)</span>
+<span class="text-editor-text-faint">---</span><span class="cursor" aria-hidden="true"></span></pre>
 
-  <!-- What we do -->
-  <section class="mx-auto grid max-w-6xl gap-14 px-6 py-20 lg:grid-cols-[1.1fr_1fr] lg:items-start">
-    <div>
-      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Our Mission</p>
-      <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] leading-[1.1] font-bold tracking-tight text-balance">
-        Building software and community at UW–Madison.
-      </h2>
-      <p class="mt-5 max-w-[52ch] text-lg text-muted-foreground">
-        MadCoders is a student organization at UW–Madison dedicated to software engineering, web development, open-source collaboration, and technology skills.
-      </p>
-      <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
-        Whether you are writing your first lines of code or shipping full-stack applications, MadCoders provides a welcoming space to collaborate, learn, and grow alongside fellow Badgers.
-      </p>
-      <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
-        Our weekly meetings cover coding tutorials, project collaboration, interview prep, and tech discussions designed to help every member build confidence as a developer.
-      </p>
-    </div>
-    <div class="rounded-2xl border border-border/80 bg-[#f7f4ee] p-7 shadow-xs sm:p-8">
-      <div class="mb-4 border-b border-border/80 pb-3.5">
-        <p class="text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">Next Meeting</p>
-      </div>
-      {nextMeeting ? (
-        <div>
-          <h3 class="font-serif text-2xl font-bold tracking-tight text-foreground">
-            {nextMeeting.title || 'MadCoders meeting'}
-          </h3>
-          <p class="mt-2 text-base font-bold text-primary">
-            {[formatNextDate(nextMeeting.date), nextMeeting.time].filter(Boolean).join(' · ')}
-          </p>
-          <p class="mt-4 text-base leading-relaxed text-muted-foreground">
-            {nextMeeting.location}
-          </p>
-          <a
-            href="/meetings"
-            class="mt-6 block w-full rounded-xl bg-primary py-3.5 text-center font-bold text-primary-foreground shadow-sm transition-colors hover:bg-cardinal-700"
-          >
-            RSVP
+        <h1 class="mt-7 max-w-[16ch] text-[clamp(2.4rem,5.2vw,3.8rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-balance text-foreground">
+          Student-run.<br />Always <span class="text-cardinal-700">shipping.</span>
+        </h1>
+        <p class="mt-5 max-w-[52ch] text-lg leading-relaxed text-editor-text-dim">
+          MadCoders is UW–Madison's student software club — weekly builds, real projects, and a community that ships. No experience required.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a href="/meetings" class="inline-flex h-11 items-center gap-2 rounded-md bg-cardinal px-6 text-[15px] font-semibold text-primary-foreground transition-colors hover:bg-cardinal-700">
+            RSVP for next meeting →
+          </a>
+          <a href="/team" class="inline-flex h-11 items-center rounded-md border border-editor-line px-6 text-[15px] font-semibold text-foreground transition-colors hover:border-ink-3">
+            See the team
           </a>
         </div>
-      ) : (
-        <div>
-          <h3 class="font-serif text-2xl font-bold tracking-tight text-foreground">
-            No upcoming meetings
-          </h3>
-          <p class="mt-2 text-base font-bold text-primary">
-            Check back soon
-          </p>
-          <p class="mt-4 text-base leading-relaxed text-muted-foreground">
-            Location to be announced (TBD).
-          </p>
-          <a
-            href="/meetings"
-            class="mt-6 block w-full rounded-xl bg-primary py-3.5 text-center font-bold text-primary-foreground shadow-sm transition-colors hover:bg-cardinal-700"
-          >
-            View all meetings
-          </a>
+      </div>
+
+      <!-- Mission panel -->
+      <div class="mx-auto max-w-3xl px-6 pt-16">
+        <p class="mb-3 font-mono text-[11px] text-cardinal-700">// mission</p>
+        <div class="rounded-lg border border-editor-line bg-editor-2">
+          <div class="flex items-center gap-2 border-b border-editor-line px-5 py-2.5 font-mono text-[12px] font-semibold text-editor-text-dim">
+            📄 README.md
+          </div>
+          <div class="px-6 py-7 sm:px-8">
+            <h2 class="text-2xl font-bold tracking-tight text-foreground">Building software and community at UW–Madison.</h2>
+            <p class="mt-4 text-[1.02rem] leading-relaxed text-editor-text-dim">
+              MadCoders is a student organization dedicated to software engineering, open-source collaboration, and technology skills — whether you're writing your first lines of code or shipping full-stack applications.
+            </p>
+            <p class="mt-3 text-[1.02rem] leading-relaxed text-editor-text-dim">
+              Our weekly meetings cover coding tutorials, project collaboration, interview prep, and tech discussions designed to help every member build confidence as a developer.
+            </p>
+          </div>
         </div>
-      )}
-    </div>
-  </section>
+      </div>
 
+      <!-- Next meeting: rendered as a key:value data block, RSVP undecorated and unmissable -->
+      <div class="mx-auto max-w-3xl px-6 pt-16">
+        <p class="mb-3 font-mono text-[11px] text-cardinal-700">// meetings.md</p>
+        <div class="overflow-hidden rounded-lg border border-editor-line font-mono text-sm">
+          <div class="flex items-center justify-between bg-editor-2 px-5 py-2.5 text-editor-text-dim">
+            <span>next_session</span>
+            {nextMeeting ? (
+              <span class="flex items-center gap-1.5 text-success"><span class="size-1.5 rounded-full bg-success"></span>open</span>
+            ) : (
+              <span class="text-editor-text-faint">tbd</span>
+            )}
+          </div>
+          {nextMeeting ? (
+            <div>
+              <div class="flex justify-between border-t border-editor-line px-5 py-3"><span class="text-editor-text-faint">title</span><span class="font-semibold text-foreground">{nextMeeting.title || 'MadCoders meeting'}</span></div>
+              <div class="flex justify-between border-t border-editor-line px-5 py-3"><span class="text-editor-text-faint">date</span><span class="font-semibold text-foreground">{formatNextDate(nextMeeting.date)}</span></div>
+              {nextMeeting.time && <div class="flex justify-between border-t border-editor-line px-5 py-3"><span class="text-editor-text-faint">time</span><span class="font-semibold text-foreground">{nextMeeting.time}</span></div>}
+              {nextMeeting.location && <div class="flex justify-between border-t border-editor-line px-5 py-3"><span class="text-editor-text-faint">room</span><span class="font-semibold text-foreground">{nextMeeting.location}</span></div>}
+              <a href="/meetings" class="block border-t border-editor-line bg-cardinal py-3.5 text-center font-sans font-semibold text-primary-foreground transition-colors hover:bg-cardinal-700">RSVP →</a>
+            </div>
+          ) : (
+            <div>
+              <div class="flex justify-between border-t border-editor-line px-5 py-3"><span class="text-editor-text-faint">title</span><span class="font-semibold text-foreground">no upcoming meetings</span></div>
+              <div class="flex justify-between border-t border-editor-line px-5 py-3"><span class="text-editor-text-faint">location</span><span class="font-semibold text-foreground">tbd</span></div>
+              <a href="/meetings" class="block border-t border-editor-line bg-cardinal py-3.5 text-center font-sans font-semibold text-primary-foreground transition-colors hover:bg-cardinal-700">View all meetings →</a>
+            </div>
+          )}
+        </div>
+      </div>
 
-  <!-- Digests / Projects -->
-  <div class="border-y border-border bg-[#f7f4ee]">
-    <section class="mx-auto max-w-6xl px-6 py-20">
-      <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Projects & Technical Tracks</h2>
-      <p class="mt-2 mb-9 max-w-[60ch] text-lg text-muted-foreground">
-        Student-led development tracks and coding projects.
-      </p>
-      <ul class="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
-        {digests.map((a) => (
-          <li class="rounded-2xl border border-border bg-card p-7 shadow-[0_10px_30px_rgb(28_25_23/0.06)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgb(28_25_23/0.1)]">
-            <p class="mb-3 text-3xl" aria-hidden="true">{a.icon}</p>
-            <h3 class="font-serif text-xl font-bold">{a.title}</h3>
-            <p class="mt-2 text-muted-foreground">{a.description}</p>
+      <!-- Projects as a directory listing -->
+      <div class="mx-auto max-w-3xl px-6 pt-16">
+        <p class="mb-1 font-mono text-[11px] text-cardinal-700">// projects/</p>
+        <h2 class="text-2xl font-bold tracking-tight text-foreground">Projects & technical tracks</h2>
+        <p class="mt-2 mb-6 max-w-[60ch] text-editor-text-dim">Student-led development tracks and coding projects.</p>
+        <ul class="divide-y divide-editor-line rounded-lg border border-editor-line">
+          {digests.map((d) => (
+            <li class="flex items-start gap-4 px-5 py-5 transition-colors hover:bg-editor-2">
+              <span class="font-mono text-lg" aria-hidden="true">{d.icon}</span>
+              <div>
+                <p class="font-mono text-sm font-semibold text-foreground">{d.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/</p>
+                <p class="mt-1 text-editor-text-dim">{d.description}</p>
+              </div>
+            </li>
+          ))}
+          <li class="flex items-start gap-4 border-t border-dashed border-cardinal/40 px-5 py-5">
+            <span class="font-mono text-lg" aria-hidden="true">✨</span>
+            <div>
+              <p class="font-mono text-sm font-semibold text-foreground">your-project/</p>
+              <p class="mt-1 text-editor-text-dim">Have an idea for a project or tech stack? Help us build the next track.</p>
+              <a href="/create-next-digest" class="mt-2 inline-block font-mono text-sm font-semibold text-cardinal-700 hover:underline">git init →</a>
+            </div>
           </li>
-        ))}
-        <li class="rounded-2xl border-2 border-dashed border-primary/40 bg-card p-7">
-          <p class="mb-3 text-3xl" aria-hidden="true">✨</p>
-          <h3 class="font-serif text-xl font-bold">Your Project</h3>
-          <p class="mt-2 text-muted-foreground">Have an idea for a project or tech stack? Help us build the next track.</p>
-          <a href="/create-next-digest" class="mt-3 inline-block font-semibold text-primary hover:underline">Get started →</a>
-        </li>
-      </ul>
-    </section>
-  </div>
-
-  <!-- Team marquee -->
-  <div class="border-y border-border bg-canvas">
-    <section class="mx-auto max-w-6xl px-6 py-20">
-      <div class="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Built by Badgers</h2>
-          <p class="mt-2 max-w-[60ch] text-lg text-muted-foreground">
-            Undergraduates from across UW–Madison.
-          </p>
-        </div>
-        <a href="/team" class={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}>View the whole team →</a>
+        </ul>
       </div>
-      <div class="marquee mt-10">
-        <ul class="marquee-track">
-          {marquee.map((m, i) => (
-            <li class="w-[280px] shrink-0 rounded-2xl border border-border bg-card p-6 text-center" aria-hidden={i >= members.length ? 'true' : undefined}>
-              {/* wide enough that the longest role/major stays on one line */}
-              {m.photo ? (
-                <Image class="mx-auto mb-3 size-16 rounded-full object-cover" src={m.photo} alt={i >= members.length ? '' : m.name} width={128} height={128} loading="lazy" />
-              ) : (
-                <span class="mx-auto mb-3 grid size-16 place-items-center rounded-full border border-border bg-cardinal-tint font-serif text-xl font-bold text-primary">{initials(m.name)}</span>
-              )}
-              <p class="font-serif text-lg font-semibold leading-tight">{m.name}</p>
-              <p class="mt-1 text-sm font-semibold text-primary">{m.role}</p>
-              <p class="text-sm text-muted-foreground">{m.major}</p>
-              <p class="text-sm text-muted-foreground">{m.classOf}</p>
+
+      <!-- Team roster as JSON -->
+      <div class="mx-auto max-w-3xl px-6 pt-16 pb-20">
+        <p class="mb-1 font-mono text-[11px] text-cardinal-700">// team.json</p>
+        <div class="flex items-end justify-between gap-4">
+          <h2 class="text-2xl font-bold tracking-tight text-foreground">Built by Badgers.</h2>
+          <a href="/team" class="font-mono text-sm font-semibold text-cardinal-700 hover:underline">view all →</a>
+        </div>
+        <ul class="mt-6 divide-y divide-editor-line rounded-lg border border-editor-line font-mono text-sm">
+          {members.map((m) => (
+            <li class="flex items-center gap-4 px-5 py-4">
+              <span class="grid size-9 shrink-0 place-items-center rounded-full bg-cardinal-tint text-xs font-bold text-cardinal-700">{initials(m.name)}</span>
+              <span class="min-w-0 flex-1 truncate font-sans font-semibold text-foreground">{m.name}</span>
+              <span class="hidden shrink-0 text-cardinal-700 sm:inline">{m.role}</span>
+              <span class="hidden shrink-0 text-editor-text-faint md:inline">{m.major}</span>
             </li>
           ))}
         </ul>
       </div>
-    </section>
+    </div>
   </div>
 
-  <!-- CTA -->
-  <section class="relative isolate overflow-hidden bg-cardinal-900 text-white">
-    <div class="absolute inset-0 -z-10 bg-[radial-gradient(120%_140%_at_85%_0%,var(--cardinal),transparent_60%)]"></div>
-    <div class="mx-auto grid max-w-6xl gap-6 px-6 py-20 lg:grid-cols-[1.4fr_auto] lg:items-center">
-      <div>
-        <h2 class="font-serif text-[clamp(2rem,4vw,3.1rem)] leading-tight font-bold tracking-tight">Build with MadCoders.</h2>
-        <p class="mt-3 max-w-[48ch] text-lg text-white/85">
-          Have an idea for a software project or workshop? Join us and help bring it to life.
-        </p>
-      </div>
-      <a href="/contact?type=digest" class="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-base font-semibold text-cardinal-900 transition-colors hover:bg-[#ffe9e9]">
+  <!-- Closing: full-bleed, outside the gutter grid -->
+  <div class="border-t border-editor-line bg-cardinal">
+    <div class="mx-auto flex max-w-5xl flex-col items-start gap-6 px-6 py-16 sm:flex-row sm:items-center sm:justify-between">
+      <h2 class="max-w-[16ch] text-[clamp(1.9rem,3.6vw,2.6rem)] leading-tight font-extrabold tracking-tight text-primary-foreground">
+        Build with MadCoders.
+      </h2>
+      <a href="/contact?type=digest" class="inline-flex h-12 shrink-0 items-center justify-center rounded-md bg-background px-6 text-base font-semibold text-cardinal-700 transition-colors hover:bg-editor-2">
         Pitch a project →
       </a>
     </div>
-  </section>
+  </div>
 </BaseLayout>
 
 <style>
-  .marquee {
-    overflow: hidden;
-    -webkit-mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-    mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  .editor-grid {
+    display: grid;
+    grid-template-columns: 52px 1fr;
   }
-  .marquee-track {
-    display: flex;
-    gap: 1.25rem;
-    width: max-content;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    animation: marquee 44s linear infinite;
+  .gutter {
+    border-right: 1px solid var(--editor-line);
+    background: var(--editor);
   }
-  @keyframes marquee {
-    to {
-      transform: translateX(-50%);
+  .gutter::before {
+    content: '';
+    display: block;
+  }
+  .editor-col {
+    min-width: 0;
+  }
+  .frontmatter {
+    white-space: pre-wrap;
+  }
+  .cursor {
+    display: inline-block;
+    width: 7px;
+    height: 15px;
+    background: var(--cardinal);
+    vertical-align: text-bottom;
+    margin-left: 2px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cursor {
+      animation: blink 1s step-end infinite;
     }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .marquee {
-      overflow-x: auto;
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+  @media (max-width: 640px) {
+    .editor-grid {
+      grid-template-columns: 1fr;
     }
-    .marquee-track {
-      animation: none;
+    .gutter {
+      display: none;
     }
   }
 </style>
+
+<script>
+  import { mountLineGutter } from '../lib/line-gutter';
+  mountLineGutter();
+</script>
+

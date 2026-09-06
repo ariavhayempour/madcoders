@@ -1,11 +1,10 @@
 ---
 // Self-hosted @fontsource fonts, Latin subset, bundled at build — no external requests (docs/claude/code-notes.md).
-import '@fontsource/spectral/latin-500.css';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
 import '@fontsource/spectral/latin-600.css';
 import '@fontsource/spectral/latin-700.css';
 import '@fontsource/spectral/latin-800.css';
-import '@fontsource/spectral/latin-600-italic.css';
-import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
 import SEO from '../components/SEO.astro';
 import Header from '../components/Header.astro';
@@ -29,11 +28,23 @@ const { title, description, path } = Astro.props;
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <SEO title={title} description={description} path={path} />
   </head>
-  <body class="min-h-dvh bg-background text-foreground">
+  <body class="ide-shell min-h-dvh bg-background text-foreground">
     <Header />
-    <main>
+    <main class="ide-content">
       <slot />
     </main>
     <Footer />
   </body>
 </html>
+
+<style is:global>
+  /* The editor chrome frame: title bar + tab bar are fixed above a scrolling
+     content column that carries its own persistent line-number gutter. */
+  .ide-shell {
+    display: flex;
+    flex-direction: column;
+  }
+  .ide-content {
+    display: block;
+  }
+</style>

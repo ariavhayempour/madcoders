@@ -70,49 +70,27 @@ describe('T1 — image source guards', () => {
   });
 });
 
-describe('T2 — campus hero on the home page', () => {
-  it('imports the self-hosted campus asset', () => {
-    expect(index).toMatch(/import\s+\w+\s+from\s+['"][^'"]*assets\/images\/campus\.jpg['"]/);
+describe('T2 — IDE front-matter hero on the home page', () => {
+  // The IDE-window redesign replaced the campus photo hero with a rendered
+  // YAML front-matter block + headline, matching the editor-chrome metaphor;
+  // src/assets/images/campus.jpg is retained on disk but no longer referenced.
+  it('renders the front-matter block and headline as the first-viewport hero', () => {
+    expect(index).toMatch(/frontmatter/);
+    expect(index).toMatch(/Always <span class="text-cardinal-700">shipping\.<\/span>/);
   });
 
-  it('renders the hero via astro:assets <Image>', () => {
-    expect(index).toMatch(/import\s*\{\s*Image\s*\}\s*from\s*['"]astro:assets['"]/);
-    expect(index).toMatch(/<Image\b/);
-  });
-
-  it('prioritizes the hero as the LCP element (eager + fetchpriority high)', () => {
-    const image = index.match(/<Image\b[\s\S]*?\/?>/)?.[0] ?? '';
-    expect(image).toMatch(/loading=["']eager["']/);
-    expect(image).toMatch(/fetchpriority=["']high["']/);
-  });
-
-  it('serves the hero responsively with widths and sizes', () => {
-    const image = index.match(/<Image\b[\s\S]*?\/?>/)?.[0] ?? '';
-    expect(image).toMatch(/\bwidths=/);
-    expect(image).toMatch(/\bsizes=/);
-  });
-
-  it('gives the hero descriptive alt text', () => {
-    const image = index.match(/<Image\b[\s\S]*?\/?>/)?.[0] ?? '';
-    expect(image).toMatch(/alt=["'][^"']*campus[^"']*["']/i);
+  it('gives the RSVP CTA the primary action styling in the hero', () => {
+    expect(index).toMatch(/RSVP for next meeting/);
   });
 });
 
-describe('T3 — logo in the masthead', () => {
-  it('imports astro:assets Image and the self-hosted logo asset', () => {
-    expect(header).toMatch(/import\s*\{\s*Image\s*\}\s*from\s*['"]astro:assets['"]/);
-    expect(header).toMatch(/import\s+\w+\s+from\s+['"][^'"]*assets\/images\/logo\.jpg['"]/);
-  });
-
-  it('renders the logo via <Image> inside the brand link', () => {
-    expect(header).toMatch(/<a href="\/"[\s\S]*?<Image\b[\s\S]*?<\/a>/);
-  });
-
-  it('keeps the visible wordmark text as the brand link’s accessible name', () => {
-    // Logo is decorative (alt="") because the adjacent wordmark text names the link.
-    const logo = header.match(/<Image\b[\s\S]*?\/>/)?.[0] ?? '';
-    expect(logo).toMatch(/alt=["']["']/);
-    expect(header).toMatch(/>MadCoders<\/span>/);
+describe('T3 — wordmark in the editor tab bar', () => {
+  // The IDE-window redesign replaced the photographic logo with a `{}` bracket
+  // mark matching the file-tree/editor icon language; logo.jpg is retained on
+  // disk but no longer referenced.
+  it('renders the bracket mark and wordmark as the brand tab', () => {
+    expect(header).toMatch(/\{'\{\}'\}/);
+    expect(header).toMatch(/>\s*madcoders\s*<\/a>/);
   });
 });
 
