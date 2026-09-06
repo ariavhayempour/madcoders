@@ -25,7 +25,26 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   if (errors.length > 0) return json({ ok: false, errors }, 400);
 
   try {
-    await insertSubmission(input);
+    const web3Key = process.env.WEB3FORMS_ACCESS_KEY || import.meta.env.WEB3FORMS_ACCESS_KEY;
+    if (web3Key && web3Key !== 'TBD') {
+      await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          access_key: web3Key,
+          name: input.name,
+          email: input.email,
+          subject: `[MadCoders ${input.type}] Message from ${input.name}`,
+          message: input.message,
+        }),
+      });
+    }
+
+    try {
+      await insertSubmission(input);
+    } catch {
+      // Gracefully continue if database connection is pending / TBD
+    }
     return json({ ok: true }, 201);
   } catch {
     // Swallow the error detail — never log the submitted email (PII).
