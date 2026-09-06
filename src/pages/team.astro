@@ -8,7 +8,7 @@ const initials = (name: string) =>
   name.split(/[\s&]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 
 // These two small groups render side by side; every other group spans the full width.
-const pairedTitles = ['Outreach & Media', 'Technology & Operations'];
+const pairedTitles = ['Outreach & Operations', 'Technical Leadership'];
 const fullWidthGroups = team.filter((g) => !pairedTitles.includes(g.title));
 const pairedGroups = pairedTitles
   .map((title) => team.find((g) => g.title === title))
@@ -16,7 +16,7 @@ const pairedGroups = pairedTitles
 ---
 <BaseLayout
   title="Our Team"
-  description="The undergraduate students who build Badger Journals across UW-Madison."
+  description="The undergraduate students who lead and build MadCoders at UW-Madison."
   path="/team"
 >
   <section class="border-b border-border bg-cream">
@@ -26,8 +26,7 @@ const pairedGroups = pairedTitles
         Built by Badgers.
       </h1>
       <p class="mt-4 max-w-[60ch] text-lg text-muted-foreground">
-        Undergraduates from across UW–Madison, developing real skills in critical reading,
-        scientific discussion, and research communication.
+        Undergraduates from across UW–Madison, collaborating on coding projects, skill-building, and technology leadership.
       </p>
     </div>
   </section>
@@ -86,7 +85,7 @@ const pairedGroups = pairedTitles
     <section class="mt-16 rounded-3xl border border-border bg-canvas p-8 sm:p-10">
       <h2 class="font-serif text-2xl font-bold tracking-tight">Join the team</h2>
       <p class="mt-2 max-w-[60ch] text-lg text-muted-foreground">
-        Want to lead, edit, or design for Badger Journals? Tell us a bit about yourself.
+        Want to lead, develop, or organize events for MadCoders? Tell us a bit about yourself.
       </p>
       <div class="mt-6">
         <a href="/contact?type=join" class="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
