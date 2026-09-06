@@ -1,0 +1,45 @@
+---
+// Shared footer, identical on every page; Team lives here (moved out of the primary nav).
+const explore = [
+  { href: '/', label: 'Home' },
+  { href: '/meetings', label: 'Meetings' },
+  { href: '/create-next-digest', label: 'Digests' },
+  { href: '/team', label: 'Team' },
+  { href: '/contact', label: 'Contact' },
+];
+---
+<footer class="bg-stone-950 text-white/70">
+  <div class="mx-auto grid max-w-6xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr]">
+    <div>
+      <div class="mb-4">
+        <span class="font-serif text-xl font-bold text-white">Badger Journals</span>
+      </div>
+      <p class="max-w-[34ch] text-sm leading-relaxed">
+        A student-run journal club reading and discussing the latest scientific findings to make research approachable for students at UW–Madison.
+      </p>
+      <p class="mt-4 text-sm">Madison, WI, 53706</p>
+    </div>
+    <nav aria-label="Explore">
+      <h2 class="mb-4 text-xs font-bold tracking-[0.14em] text-white uppercase">Explore</h2>
+      <ul class="space-y-2 text-sm">
+        {explore.map((l) => (
+          <li><a class="transition-colors hover:text-white" href={l.href}>{l.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+    <nav aria-label="Connect">
+      <h2 class="mb-4 text-xs font-bold tracking-[0.14em] text-white uppercase">Connect</h2>
+      <ul class="space-y-2 text-sm">
+        <li><a class="transition-colors hover:text-white" href="https://www.instagram.com/badgerjournals/" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a class="transition-colors hover:text-white" href="https://www.linkedin.com/company/badger-journals/home/" target="_blank" rel="noopener">LinkedIn</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="border-t border-white/10">
+    <div class="mx-auto flex max-w-6xl flex-col items-start gap-2 px-6 py-5 text-sm text-white/50 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <span>For educational purposes only</span>
+      <a class="transition-colors hover:text-white" href="https://github.com/ariavhayempour/badger_journals" target="_blank" rel="noopener">GitHub - Ariav Hayempour :)</a>
+      <a class="transition-colors hover:text-white" href="/admin">Admin Portal</a>
+    </div>
+  </div>
+</footer>

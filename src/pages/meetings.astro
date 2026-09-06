@@ -1,0 +1,234 @@
+---
+// Per-request SSR read of the events table, so admin create/edit/delete shows on the next visit with no redeploy.
+export const prerender = false;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import RsvpForm from '../components/RsvpForm.astro';
+import { listEvents } from '../db/event';
+import type { MeetingView } from '../lib/split-meetings';
+import {
+  resolveFocusMonth,
+  shiftMonth,
+  monthParam,
+  buildMonthCells,
+  eventsInMonth,
+  groupByDate,
+  nearestUpcoming,
+} from '../lib/meeting-calendar';
+import { REVALIDATE_CACHE_CONTROL } from '../lib/cache-headers';
+
+Astro.response.headers.set('Cache-Control', REVALIDATE_CACHE_CONTROL);
+
+const rows = await listEvents();
+const events: MeetingView[] = rows.map((r) => ({
+  id: r.slug,
+  date: r.date,
+  title: r.title ?? undefined,
+  time: r.time ?? undefined,
+  location: r.location ?? undefined,
+}));
+const today = new Date().toISOString().slice(0, 10); // request time — advances without a redeploy
+
+const { year, month } = resolveFocusMonth(Astro.url.searchParams.get('month'), events, today);
+const cells = buildMonthCells(year, month, today);
+const monthEvents = eventsInMonth(events, year, month);
+const groups = groupByDate(monthEvents);
+const next = nearestUpcoming(events, today);
+
+const prevShift = shiftMonth(year, month, -1);
+const nextShift = shiftMonth(year, month, 1);
+const prevParam = monthParam(prevShift.year, prevShift.month);
+const nextParam = monthParam(nextShift.year, nextShift.month);
+
+// UTC formatters match the UTC-midnight parse of an ISO date, avoiding an off-by-one day shift.
+const monthFmt = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const dateFmt = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const shortFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+const monthLabel = monthFmt.format(new Date(Date.UTC(year, month, 1)));
+const formatLong = (iso: string): string => dateFmt.format(new Date(`${iso}T00:00:00Z`));
+const formatShort = (iso: string): string => shortFmt.format(new Date(`${iso}T00:00:00Z`));
+const detail = (m: MeetingView): string => [m.time, m.location].filter(Boolean).join(' · ');
+
+const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const eventCountOn = (iso: string): number => events.filter((e) => e.date === iso).length;
+---
+<BaseLayout
+  title="Meetings"
+  description="When and where Badger Journals meets, and what to expect."
+  path="/meetings"
+>
+  <section class="border-b border-border bg-cream">
+    <div class="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Meetings</p>
+      <h1 class="font-serif text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.05] font-extrabold tracking-tight text-balance">
+        RSVP to an event.
+      </h1>
+      <p class="mt-4 max-w-[60ch] text-lg text-muted-foreground">
+        Our meetings are open to everyone: read, discuss, or just hang out. If you're feeling bold, present your research!
+      </p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-5xl px-6 py-16">
+    <div class="grid gap-8 lg:grid-cols-[19rem_1fr]">
+      <div class="h-fit rounded-2xl border border-border bg-canvas p-6">
+        <div class="mb-4 flex items-center justify-between">
+          <p class="font-serif text-lg font-bold tracking-tight">{monthLabel}</p>
+          <div class="flex gap-1.5">
+            <a
+              href={`/meetings?month=${prevParam}`}
+              aria-label="Previous month"
+              class="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+            >‹</a>
+            <a
+              href={`/meetings?month=${nextParam}`}
+              aria-label="Next month"
+              class="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+            >›</a>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-7" aria-hidden="true">
+          {WEEKDAYS.map((w) => (
+            <span class="text-center text-[0.65rem] font-bold tracking-wide text-muted-foreground uppercase">{w}</span>
+          ))}
+        </div>
+
+        <div class="mt-1 grid grid-cols-7 gap-1" role="group" aria-label="Meeting calendar">
+          {cells.map((cell) => {
+            const count = cell.inMonth ? eventCountOn(cell.iso) : 0;
+            const base = 'flex aspect-square items-center justify-center rounded-lg text-sm tabular-nums';
+            if (!cell.inMonth) {
+              return <span class={`${base} text-muted-foreground/40`}>{cell.day}</span>;
+            }
+            if (count === 0) {
+              return (
+                <span class:list={[base, 'text-foreground', cell.isToday && 'font-bold ring-1 ring-border']}>
+                  {cell.day}
+                </span>
+              );
+            }
+            return (
+              <a
+                href={`#d-${cell.iso}`}
+                class:list={[
+                  base,
+                  'relative font-semibold text-foreground transition-colors hover:bg-cream',
+                  cell.isToday && 'ring-1 ring-border',
+                ]}
+                aria-label={`${formatLong(cell.iso)}, ${count} meeting${count > 1 ? 's' : ''}`}
+              >
+                {cell.day}
+                <span class="absolute bottom-1 h-1 w-1 rounded-full bg-primary" aria-hidden="true"></span>
+              </a>
+            );
+          })}
+        </div>
+
+        <p class="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true"></span>
+          Meeting scheduled
+        </p>
+      </div>
+
+      <div class="min-w-0">
+        <p class="mb-4 text-sm font-medium text-muted-foreground">
+          {monthEvents.length} meeting{monthEvents.length === 1 ? '' : 's'} in {monthLabel}
+        </p>
+
+        {groups.length > 0 ? (
+          <ul class="grid list-none gap-5 p-0">
+            {groups.map((group) => {
+              const isPast = group.date < today;
+              return (
+                <li
+                  id={`d-${group.date}`}
+                  class:list={[
+                    'scroll-mt-24 rounded-2xl border border-border p-6 sm:p-8 [&:target]:ring-2 [&:target]:ring-primary',
+                    isPast ? 'bg-canvas' : 'bg-card',
+                  ]}
+                >
+                  <time
+                    datetime={group.date}
+                    class:list={['font-serif text-xl font-bold tabular-nums', isPast ? 'text-muted-foreground' : 'text-primary']}
+                  >
+                    {formatLong(group.date)}
+                  </time>
+                  <div class="mt-4 grid gap-6">
+                    {group.items.map((m) => (
+                      <div>
+                        {m.title && <p class="text-xl font-semibold">{m.title}</p>}
+                        {detail(m) && <p class="mt-1 text-muted-foreground">{detail(m)}</p>}
+                        {isPast ? (
+                          <p class="mt-2 text-sm text-muted-foreground">This meeting has passed.</p>
+                        ) : (
+                          <details class="group mt-4">
+                            <summary class="event-toggle inline-flex cursor-pointer select-none items-center gap-1.5 rounded-full border border-primary px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+                              <span class="group-open:hidden">RSVP</span>
+                              <span class="hidden group-open:inline">Hide RSVP</span>
+                              <svg class="h-3 w-3 shrink-0 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                <path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                              </svg>
+                            </summary>
+                            <RsvpForm meeting={m.id} />
+                          </details>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div class="rounded-2xl border border-border bg-card p-8 text-lg text-muted-foreground">
+            <p>No meetings scheduled in {monthLabel}.</p>
+            {next && (
+              <a
+                href={`/meetings?month=${next.date.slice(0, 7)}#d-${next.date}`}
+                class="mt-3 inline-block font-medium text-primary underline underline-offset-2 hover:no-underline"
+              >
+                Jump to the next meeting — {formatShort(next.date)}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Removes both engines' native disclosure triangle so the pill button is the only affordance. */
+  summary.event-toggle {
+    list-style: none;
+  }
+  summary.event-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    details[open] > form.rsvp {
+      animation: rsvp-reveal 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  @keyframes rsvp-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    summary.event-toggle svg {
+      transition: none;
+    }
+  }
+</style>

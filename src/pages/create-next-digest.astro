@@ -1,0 +1,60 @@
+---
+export const prerender = true;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { digests } from '../data/digests';
+---
+<BaseLayout
+  title="Create the Next Digest"
+  description="Badger Journals is expanding — help launch a student-led digest in a new field of science."
+  path="/create-next-digest"
+>
+  <section class="border-b border-border bg-cream">
+    <div class="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Digests</p>
+      <h1 class="font-serif text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.05] font-extrabold tracking-tight text-balance">
+        Create the next digest.
+      </h1>
+      <p class="mt-4 max-w-[62ch] text-lg text-muted-foreground">
+        Badger Journals is expanding. We believe every area of science deserves accessible
+        student-led digests. If you are passionate about a research area, we want to
+        help you build the next Badger Journals digest.
+      </p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 py-16">
+    <h2 class="font-serif text-2xl font-bold tracking-tight sm:text-3xl">Digests we publish today</h2>
+    <p class="mt-2 mb-9 max-w-[62ch] text-lg text-muted-foreground">
+    </p>
+    <ul class="grid list-none gap-5 p-0 [grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))]">
+      {digests.map((d) => (
+        <li class="rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)]">
+          <p class="mb-3 text-3xl" aria-hidden="true">{d.icon}</p>
+          <h3 class="font-serif text-xl font-bold">{d.title}</h3>
+          <p class="mt-2 text-muted-foreground">{d.description}</p>
+        </li>
+      ))}
+      <li class="rounded-2xl border border-primary/20 bg-cardinal-tint p-6">
+        <p class="mb-3 text-3xl" aria-hidden="true">✨</p>
+        <h3 class="font-serif text-xl font-bold">Your field</h3>
+        <p class="mt-2 text-cardinal-700">
+          Passionate about a research area not listed here? We want to hear from you.
+          Any field of science is welcome at Badger Journals.
+        </p>
+        <a href="/contact" class="mt-3 inline-block font-semibold text-primary hover:underline">Get in touch →</a>
+      </li>
+    </ul>
+  </section>
+
+  <div class="border-t border-border bg-canvas">
+    <section class="mx-auto max-w-5xl px-6 py-16">
+      <h2 class="font-serif text-2xl font-bold tracking-tight sm:text-3xl">Propose a digest</h2>
+      <p class="mt-2 text-lg text-muted-foreground">Have a field in mind? Pitch it to us and we'll help you get started.</p>
+      <div class="mt-6">
+        <a href="/contact?type=digest" class="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+          Pitch a digest
+        </a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

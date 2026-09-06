@@ -1,0 +1,70 @@
+---
+// Per-request SSR; the /admin gate (middleware) covers GET and POST — no in-page auth check.
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PageHeader from '../../../components/admin/PageHeader.astro';
+import Panel from '../../../components/admin/Panel.astro';
+import EventForm from '../../../components/EventForm.astro';
+import DeleteEventButton from '../../../components/DeleteEventButton';
+import { getEvent, updateEvent } from '../../../db/event';
+import { validateEvent, extractTime, type EventFieldError, type EventInput } from '../../../lib/event-validation';
+
+const idParam = Astro.params.id ?? '';
+if (!/^\d+$/.test(idParam)) {
+  return new Response('Not found', { status: 404 });
+}
+const id = Number(idParam);
+
+let errors: EventFieldError[] = [];
+let submitted: EventInput | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (form.get('_action') === 'update') {
+    const input: EventInput = {
+      date: String(form.get('date') ?? ''),
+      title: String(form.get('title') ?? ''),
+      time: extractTime(form),
+      location: String(form.get('location') ?? ''),
+    };
+    errors = validateEvent(input);
+    if (errors.length === 0) {
+      await updateEvent(id, input);
+      return Astro.redirect('/admin/events', 303);
+    }
+    submitted = input;
+    Astro.response.status = 400;
+  }
+}
+
+const event = await getEvent(id);
+if (!event) {
+  return new Response('Not found', { status: 404 });
+}
+
+const values: Partial<EventInput> = submitted ?? {
+  date: event.date,
+  title: event.title ?? '',
+  time: event.time ?? '',
+  location: event.location ?? '',
+};
+---
+<AdminLayout title="Edit event">
+  <p class="mb-4"><a href="/admin/events" class="text-sm font-semibold text-muted-foreground hover:text-primary">← Back to events</a></p>
+  <PageHeader title="Edit event" subtitle={event.title ?? undefined} />
+
+  <Panel title="Event details">
+    <div class="p-5">
+      <EventForm action={`/admin/events/${id}`} actionValue="update" submitLabel="Save changes" values={values} errors={errors} />
+    </div>
+  </Panel>
+
+  <Panel title="Danger zone" tone="destructive">
+    <div class="flex flex-wrap items-center justify-between gap-4 p-5">
+      <p class="max-w-[52ch] text-sm text-muted-foreground">
+        Deleting this event also removes every RSVP attached to it. This action can't be undone.
+      </p>
+      <DeleteEventButton client:load id={id} />
+    </div>
+  </Panel>
+</AdminLayout>

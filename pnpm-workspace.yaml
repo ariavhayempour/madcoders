@@ -1,0 +1,9 @@
+# Approve build scripts for toolchain deps pnpm blocks by default.
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+# Dedupe to one vite: Astro 7 requires vite@8, and a second copy pulled in by
+# Vitest lands its `test` type augmentation on the wrong vite, breaking `astro check`.
+overrides:
+  vite: ^8.0.13

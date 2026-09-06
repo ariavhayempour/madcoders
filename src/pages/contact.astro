@@ -1,0 +1,54 @@
+---
+export const prerender = true;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import InquiryForm from '../components/InquiryForm.astro';
+
+const reasons = [
+  { title: 'General Inquiries', body: 'Questions about a meeting, a submission, or the club? We read everything.' },
+  { title: 'Start a digest', body: 'Pitch a new research area you want to make accessible to the campus.' },
+  { title: 'Join the team', body: 'Help run meetings, edit digests, or lead a research area alongside fellow Badgers.' },
+
+];
+---
+<BaseLayout
+  title="Contact Us"
+  description="Get involved with Badger Journals or propose a new digest."
+  path="/contact"
+>
+  <section class="border-b border-border bg-cream">
+    <div class="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Contact</p>
+      <h1 class="max-w-[16ch] font-serif text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.05] font-extrabold tracking-tight text-balance">
+        Get in touch.
+      </h1>
+      <p class="mt-4 max-w-[52ch] text-lg leading-relaxed text-muted-foreground">
+        Whether you want to join our team, start a new digest, or just say hello, we'd love to hear from you.
+      </p>
+    </div>
+  </section>
+
+  <div class="mx-auto grid max-w-6xl gap-x-16 gap-y-10 px-6 py-16 sm:py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+    <section aria-labelledby="ways-heading">
+      <h2 id="ways-heading" class="font-serif text-2xl font-bold tracking-tight">Ways to reach out</h2>
+      <dl class="mt-6 divide-y divide-border border-y border-border">
+        {reasons.map((r) => (
+          <div class="py-5">
+            <dt class="font-serif text-lg font-semibold tracking-tight">{r.title}</dt>
+            <dd class="mt-1 max-w-[42ch] text-[0.95rem] leading-relaxed text-muted-foreground">{r.body}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="mt-6 text-sm text-muted-foreground">
+        Prefer social? Find us on{' '}
+        <a class="font-medium text-primary underline-offset-4 hover:underline" href="https://www.instagram.com/badgerjournals/" target="_blank" rel="noopener">Instagram</a>{' '}
+        and{' '}
+        <a class="font-medium text-primary underline-offset-4 hover:underline" href="https://www.linkedin.com/company/badger-journals/home/" target="_blank" rel="noopener">LinkedIn</a>.
+      </p>
+    </section>
+
+    <section aria-labelledby="form-heading">
+      <h2 id="form-heading" class="font-serif text-2xl font-bold tracking-tight">Send us a message</h2>
+      <InquiryForm />
+    </section>
+  </div>
+</BaseLayout>
