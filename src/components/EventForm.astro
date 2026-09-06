@@ -1,0 +1,114 @@
+---
+import { MAX_TITLE, MAX_TIME, MAX_LOCATION } from '../lib/limits';
+import type { EventField, EventFieldError, EventInput } from '../lib/event-validation';
+
+interface Props {
+  action: string; // POST target
+  actionValue: string; // hidden _action discriminator (create | update)
+  submitLabel: string;
+  values?: Partial<EventInput>;
+  errors?: EventFieldError[];
+}
+const { action, actionValue, submitLabel, values = {}, errors = [] } = Astro.props;
+const errorFor = (field: EventField): string | undefined => errors.find((e) => e.field === field)?.message;
+const errId = (field: EventField): string => `event-${field}-err`;
+
+const field = 'h-10 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/70 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
+
+const parseTime = (timeStr?: string) => {
+  if (!timeStr) return { val: '', ampm: 'PM' };
+  const match = timeStr.trim().match(/^(.*?)\s*(AM|PM|am|pm)$/i);
+  if (!match) return { val: timeStr.trim(), ampm: 'PM' };
+  const val = match[1]?.trim() || '';
+  const ampm = (match[2] || 'PM').toUpperCase();
+  return { val, ampm };
+};
+
+const { val: timeVal, ampm: timeAmpm } = parseTime(values.time);
+---
+<form class="grid gap-5 sm:grid-cols-2" method="post" action={action}>
+  <input type="hidden" name="_action" value={actionValue} />
+
+  <div class="grid gap-1.5">
+    <label for="event-date" class="text-sm font-medium">Date</label>
+    <input
+      id="event-date"
+      name="date"
+      type="date"
+      required
+      value={values.date ?? ''}
+      class={field}
+      aria-describedby={errorFor('date') ? errId('date') : undefined}
+      aria-invalid={errorFor('date') ? 'true' : undefined}
+    />
+    {errorFor('date') && <p class="text-sm text-destructive" id={errId('date')}>{errorFor('date')}</p>}
+  </div>
+
+  <div class="grid gap-1.5">
+    <label for="event-time" class="text-sm font-medium">Time</label>
+    <div class="flex gap-2">
+      <input
+        id="event-time"
+        name="time"
+        type="text"
+        required
+        placeholder="e.g. 6:00"
+        maxlength={MAX_TIME}
+        value={timeVal}
+        class={`${field} flex-1`}
+        aria-describedby={errorFor('time') ? errId('time') : undefined}
+        aria-invalid={errorFor('time') ? 'true' : undefined}
+      />
+      <select
+        id="event-time-ampm"
+        name="time_ampm"
+        class="h-10 rounded-lg border border-input bg-background px-3 text-sm font-medium shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        aria-label="AM or PM"
+      >
+        <option value="PM" selected={timeAmpm === 'PM'}>PM</option>
+        <option value="AM" selected={timeAmpm === 'AM'}>AM</option>
+      </select>
+    </div>
+    {errorFor('time') && <p class="text-sm text-destructive" id={errId('time')}>{errorFor('time')}</p>}
+  </div>
+
+  <div class="grid gap-1.5 sm:col-span-2">
+    <label for="event-title" class="text-sm font-semibold">Title</label>
+    <input
+      id="event-title"
+      name="title"
+      type="text"
+      required
+      placeholder="e.g. Neuroscience Roundtable"
+      maxlength={MAX_TITLE}
+      value={values.title ?? ''}
+      class={field}
+      aria-describedby={errorFor('title') ? errId('title') : undefined}
+      aria-invalid={errorFor('title') ? 'true' : undefined}
+    />
+    <p class="text-xs text-muted-foreground">Shown on the public meetings page and RSVP form.</p>
+    {errorFor('title') && <p class="text-sm text-destructive" id={errId('title')}>{errorFor('title')}</p>}
+  </div>
+
+  <div class="grid gap-1.5 sm:col-span-2">
+    <label for="event-location" class="text-sm font-semibold">Location</label>
+    <input
+      id="event-location"
+      name="location"
+      type="text"
+      required
+      placeholder="e.g. Chamberlin Hall 2103"
+      maxlength={MAX_LOCATION}
+      value={values.location ?? ''}
+      class={field}
+      aria-describedby={errorFor('location') ? errId('location') : undefined}
+      aria-invalid={errorFor('location') ? 'true' : undefined}
+    />
+    {errorFor('location') && <p class="text-sm text-destructive" id={errId('location')}>{errorFor('location')}</p>}
+  </div>
+
+  <button
+    type="submit"
+    class="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:col-span-2"
+  >{submitLabel}</button>
+</form>

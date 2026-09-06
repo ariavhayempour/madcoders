@@ -1,0 +1,175 @@
+---
+// Per-request SSR; the /admin gate (middleware) covers GET and POST — no in-page auth check.
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PageHeader from '../../../components/admin/PageHeader.astro';
+import Panel from '../../../components/admin/Panel.astro';
+import EventForm from '../../../components/EventForm.astro';
+import { listEvents, insertEvent, deleteEvent } from '../../../db/event';
+import { listRsvps } from '../../../db/rsvp';
+import { validateEvent, extractTime, type EventFieldError, type EventInput } from '../../../lib/event-validation';
+
+let errors: EventFieldError[] = [];
+let values: Partial<EventInput> = {};
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action');
+  if (action === 'create') {
+    const input: EventInput = {
+      date: String(form.get('date') ?? ''),
+      title: String(form.get('title') ?? ''),
+      time: extractTime(form),
+      location: String(form.get('location') ?? ''),
+    };
+    errors = validateEvent(input);
+    if (errors.length === 0) {
+      await insertEvent(input);
+      return Astro.redirect('/admin/events', 303);
+    }
+    values = input;
+    Astro.response.status = 400;
+  } else if (action === 'delete') {
+    const id = Number(form.get('id'));
+    if (Number.isInteger(id) && id > 0) {
+      await deleteEvent(id);
+    }
+    return Astro.redirect('/admin/events', 303);
+  }
+}
+
+const [events, rsvps] = await Promise.all([listEvents(), listRsvps()]);
+const counts = rsvps.reduce<Record<string, number>>((acc, r) => {
+  acc[r.meeting] = (acc[r.meeting] ?? 0) + 1;
+  return acc;
+}, {});
+const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const fmtDate = (iso: string) => dateFmt.format(new Date(iso));
+const th = 'border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase';
+const sortTh = `${th} group cursor-pointer select-none`;
+const td = 'border-b border-border/50 px-5 py-3.5 align-middle';
+const sortIcon = 'size-2.5 shrink-0 opacity-40 transition-[opacity,transform] group-aria-[sort=ascending]:rotate-180 group-aria-[sort=ascending]:opacity-100 group-aria-[sort=descending]:opacity-100';
+---
+<AdminLayout title="Events">
+  <PageHeader title="Events" subtitle="Create meetings and manage the schedule. Editing an event is where you can also delete it." />
+
+  <Panel title="Add an event">
+    <div class="p-5">
+      <EventForm action="/admin/events" actionValue="create" submitLabel="Create event" values={values} errors={errors} />
+    </div>
+  </Panel>
+
+  <Panel title="All events" count={`${events.length} total`}>
+    {events.length === 0 ? (
+      <p class="px-5 py-8 text-muted-foreground">No events yet. Add one above.</p>
+    ) : (
+      <>
+        <div class="border-b border-border/60 px-5 py-4">
+          <div class="relative w-full max-w-[280px]">
+            <svg class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              id="event-search"
+              type="text"
+              placeholder="Search title or location"
+              class="h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            />
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table id="events-table" class="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th scope="col" class={sortTh} data-sort-key="date" aria-sort="descending">
+                  <button type="button" data-sort-trigger="date" class="inline-flex items-center gap-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded-sm">
+                    Date
+                    <svg class={sortIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 9l6 6 6-6" /></svg>
+                  </button>
+                </th>
+                <th scope="col" class={sortTh} data-sort-key="title">
+                  <button type="button" data-sort-trigger="title" class="inline-flex items-center gap-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded-sm">
+                    Title
+                    <svg class={sortIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 9l6 6 6-6" /></svg>
+                  </button>
+                </th>
+                <th scope="col" class={th}>Time</th>
+                <th scope="col" class={th}>Location</th>
+                <th scope="col" class={th}>RSVPs</th>
+                <th scope="col" class={`${th} text-right`}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((e) => (
+                <tr
+                  class="transition-colors hover:bg-muted/40"
+                  data-id={e.id}
+                  data-date={e.date}
+                  data-title={(e.title ?? '').toLowerCase()}
+                  data-search={`${e.title ?? ''} ${e.location ?? ''}`.toLowerCase()}
+                >
+                  <td class={`${td} font-serif font-semibold whitespace-nowrap tabular-nums`}><time datetime={e.date}>{fmtDate(e.date)}</time></td>
+                  <td class={`${td} font-semibold`}>{e.title ?? <span class="font-normal text-muted-foreground">Untitled</span>}</td>
+                  <td class={`${td} whitespace-nowrap text-muted-foreground`}>{e.time ?? '—'}</td>
+                  <td class={`${td} text-muted-foreground`}>{e.location ?? '—'}</td>
+                  <td class={td}>
+                    <span class="inline-flex items-center gap-1.5 font-semibold">
+                      <span class="size-1.5 rounded-full bg-primary"></span>{counts[e.slug] ?? 0}
+                    </span>
+                  </td>
+                  <td class={`${td} text-right`}>
+                    <a href={`/admin/events/${e.id}`} class="inline-flex h-8 items-center rounded-md border border-border px-3 text-sm font-semibold transition-colors hover:border-primary/40 hover:text-primary">Edit</a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p id="events-empty-filtered" class="hidden px-5 py-14 text-center text-muted-foreground">No events match your search.</p>
+      </>
+    )}
+  </Panel>
+</AdminLayout>
+
+<script>
+  const searchInput = document.getElementById('event-search') as HTMLInputElement | null;
+  const table = document.getElementById('events-table');
+  const tbody = table?.querySelector('tbody');
+  const emptyState = document.getElementById('events-empty-filtered');
+
+  if (searchInput && table && tbody) {
+    const getRows = () => [...tbody.querySelectorAll<HTMLTableRowElement>('tr[data-id]')];
+
+    function applySearch() {
+      const q = searchInput!.value.trim().toLowerCase();
+      const rows = getRows();
+      let visible = 0;
+      rows.forEach((row) => {
+        const match = q === '' || (row.dataset.search ?? '').includes(q);
+        row.classList.toggle('hidden', !match);
+        if (match) visible++;
+      });
+      emptyState?.classList.toggle('hidden', rows.length === 0 || visible !== 0);
+    }
+    searchInput.addEventListener('input', applySearch);
+
+    table.querySelectorAll<HTMLButtonElement>('button[data-sort-trigger]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const header = btn.closest<HTMLTableCellElement>('th');
+        const key = btn.dataset.sortTrigger as 'date' | 'title';
+        if (!header || !key) return;
+        const nextDir = header.getAttribute('aria-sort') === 'ascending' ? 'descending' : 'ascending';
+        table.querySelectorAll('th[aria-sort]').forEach((h) => h.removeAttribute('aria-sort'));
+        header.setAttribute('aria-sort', nextDir);
+
+        const sorted = getRows().sort((a, b) => {
+          const av = a.dataset[key] ?? '';
+          const bv = b.dataset[key] ?? '';
+          return nextDir === 'ascending' ? av.localeCompare(bv) : bv.localeCompare(av);
+        });
+        sorted.forEach((row) => tbody.appendChild(row));
+      });
+    });
+  }
+</script>

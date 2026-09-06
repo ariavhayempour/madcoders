@@ -1,0 +1,186 @@
+---
+import type { SubmissionRow, SubmissionType } from '../db/schema';
+
+interface Props {
+  submissions: SubmissionRow[];
+}
+const { submissions } = Astro.props;
+
+const unreadCount = submissions.filter((s) => !s.is_read).length;
+const readCount = submissions.length - unreadCount;
+
+const TYPE_CHIPS: { value: SubmissionType; label: string }[] = [
+  { value: 'inquiry', label: 'General' },
+  { value: 'join', label: 'Team joins' },
+  { value: 'digest', label: 'Digest pitches' },
+];
+const typeCount = (value: SubmissionType) => submissions.filter((s) => s.submission_type === value).length;
+
+const segBtn = 'rounded-[5px] px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+const chipBtn = 'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+---
+<div class="border-b border-border/60 px-5 py-4 space-y-3" data-inquiry-filters>
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="relative w-full max-w-[280px]">
+      <svg class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        id="submission-search"
+        type="text"
+        placeholder="Search name, email, or message"
+        class="h-9 w-full rounded-md border border-input bg-background pl-9 pr-8 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      />
+      <button
+        id="submission-search-clear"
+        type="button"
+        class="absolute right-2 top-1/2 hidden -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        aria-label="Clear search"
+      >
+        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="inline-flex rounded-md border border-input bg-background p-0.5 text-sm" role="group" aria-label="Filter by read status">
+      <button type="button" data-status="all" aria-pressed="true" class={`${segBtn} bg-cardinal-tint text-cardinal-700`}>
+        All <span class="font-normal" data-count-status="all">({submissions.length})</span>
+      </button>
+      <button type="button" data-status="unread" aria-pressed="false" class={`${segBtn} text-muted-foreground hover:bg-muted`}>
+        Unread <span class="font-normal" data-count-status="unread">({unreadCount})</span>
+      </button>
+      <button type="button" data-status="read" aria-pressed="false" class={`${segBtn} text-muted-foreground hover:bg-muted`}>
+        Read <span class="font-normal" data-count-status="read">({readCount})</span>
+      </button>
+    </div>
+
+    <button type="button" id="submission-clear-filters" class="ml-auto hidden text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded-sm">
+      Clear filters
+    </button>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="mr-1 text-xs font-bold tracking-[0.06em] text-muted-foreground uppercase">Type</span>
+    {TYPE_CHIPS.map((c) => (
+      <button type="button" data-type={c.value} aria-pressed="false" class={`${chipBtn} border-input bg-background text-muted-foreground hover:bg-muted`}>
+        {c.label} <span class="font-normal" data-count-type={c.value}>({typeCount(c.value)})</span>
+      </button>
+    ))}
+  </div>
+</div>
+
+<script>
+  const SEG_BASE = 'rounded-[5px] px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+  const SEG_ACTIVE = 'bg-cardinal-tint text-cardinal-700';
+  const SEG_INACTIVE = 'text-muted-foreground hover:bg-muted';
+
+  const CHIP_BASE = 'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+  const CHIP_ACTIVE = 'border-primary bg-primary text-primary-foreground';
+  const CHIP_INACTIVE = 'border-input bg-background text-muted-foreground hover:bg-muted';
+
+  const searchInput = document.getElementById('submission-search') as HTMLInputElement | null;
+  const searchClear = document.getElementById('submission-search-clear') as HTMLButtonElement | null;
+  const clearAllBtn = document.getElementById('submission-clear-filters') as HTMLButtonElement | null;
+  const statusButtons = document.querySelectorAll<HTMLButtonElement>('[data-inquiry-filters] [data-status]');
+  const typeChips = document.querySelectorAll<HTMLButtonElement>('[data-inquiry-filters] [data-type]');
+  const emptyState = document.getElementById('submissions-empty-filtered');
+
+  if (searchInput && clearAllBtn && emptyState && statusButtons.length > 0) {
+    const state = { status: 'all', types: new Set<string>(), search: '' };
+
+    const getRows = () => document.querySelectorAll<HTMLTableRowElement>('tr[data-id]');
+    const statusMatches = (row: HTMLTableRowElement) => {
+      if (state.status === 'unread') return row.dataset.read === 'false';
+      if (state.status === 'read') return row.dataset.read === 'true';
+      return true;
+    };
+    const typeMatches = (row: HTMLTableRowElement) => state.types.size === 0 || state.types.has(row.dataset.type ?? '');
+    const searchMatches = (row: HTMLTableRowElement) => state.search === '' || (row.dataset.search ?? '').includes(state.search);
+
+    function update() {
+      const rows = [...getRows()];
+      let visible = 0;
+      rows.forEach((row) => {
+        const show = statusMatches(row) && typeMatches(row) && searchMatches(row);
+        row.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      emptyState!.classList.toggle('hidden', rows.length === 0 || visible !== 0);
+
+      const typeScopedRows = rows.filter((r) => statusMatches(r) && searchMatches(r));
+      document.querySelectorAll<HTMLElement>('[data-count-type]').forEach((el) => {
+        const t = el.dataset.countType;
+        el.textContent = `(${typeScopedRows.filter((r) => r.dataset.type === t).length})`;
+      });
+
+      const statusScopedRows = rows.filter((r) => typeMatches(r) && searchMatches(r));
+      const setStatusCount = (key: string, n: number) => {
+        const el = document.querySelector<HTMLElement>(`[data-count-status="${key}"]`);
+        if (el) el.textContent = `(${n})`;
+      };
+      setStatusCount('all', statusScopedRows.length);
+      setStatusCount('unread', statusScopedRows.filter((r) => r.dataset.read === 'false').length);
+      setStatusCount('read', statusScopedRows.filter((r) => r.dataset.read === 'true').length);
+
+      const anyActive = state.status !== 'all' || state.types.size > 0 || state.search !== '';
+      clearAllBtn!.classList.toggle('hidden', !anyActive);
+      searchClear?.classList.toggle('hidden', state.search === '');
+    }
+
+    function setActiveStatus(button: HTMLButtonElement) {
+      statusButtons.forEach((b) => {
+        const active = b === button;
+        b.setAttribute('aria-pressed', String(active));
+        b.className = `${SEG_BASE} ${active ? SEG_ACTIVE : SEG_INACTIVE}`;
+      });
+    }
+
+    statusButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.status = btn.dataset.status ?? 'all';
+        setActiveStatus(btn);
+        update();
+      });
+    });
+
+    typeChips.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.type ?? '';
+        const active = state.types.has(t);
+        if (active) state.types.delete(t);
+        else state.types.add(t);
+        btn.setAttribute('aria-pressed', String(!active));
+        btn.className = `${CHIP_BASE} ${!active ? CHIP_ACTIVE : CHIP_INACTIVE}`;
+        update();
+      });
+    });
+
+    searchInput.addEventListener('input', () => {
+      state.search = searchInput.value.trim().toLowerCase();
+      update();
+    });
+    searchClear?.addEventListener('click', () => {
+      searchInput.value = '';
+      state.search = '';
+      searchInput.focus();
+      update();
+    });
+
+    clearAllBtn.addEventListener('click', () => {
+      state.status = 'all';
+      state.types.clear();
+      state.search = '';
+      searchInput.value = '';
+      const allBtn = document.querySelector<HTMLButtonElement>('[data-inquiry-filters] [data-status="all"]');
+      if (allBtn) setActiveStatus(allBtn);
+      typeChips.forEach((btn) => {
+        btn.setAttribute('aria-pressed', 'false');
+        btn.className = `${CHIP_BASE} ${CHIP_INACTIVE}`;
+      });
+      update();
+    });
+
+    document.addEventListener('submissions:changed', update);
+    update();
+  }
+</script>

@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.astro/
+
+# lighthouse ci reports
+.lighthouseci/
+
+# vercel
+.vercel/
+
+# environment / secrets
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+
+# os
+.DS_Store
+.vercel
+.env*
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# playwright mcp browser output
+/.playwright-mcp/

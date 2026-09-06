@@ -1,0 +1,222 @@
+---
+import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE, MAX_MESSAGE_WORDS } from '../lib/limits';
+import type { SubmissionType } from '../db/schema';
+
+const nameId = `inq-name`;
+const emailId = `inq-email`;
+const typeId = `inq-type`;
+const messageId = `inq-message`;
+const nameErrId = `inq-name-err`;
+const emailErrId = `inq-email-err`;
+const messageErrId = `inq-message-err`;
+const statusId = `inq-status`;
+
+interface Props {
+  type?: SubmissionType;
+}
+const { type } = Astro.props;
+
+const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 text-base md:text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
+---
+<form class="inquiry mt-6 grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-[0_10px_30px_rgb(28_25_23/0.06)] sm:p-8" method="post" action="/api/inquiry" novalidate data-inquiry>
+  {type && <input type="hidden" name="type" value={type} />}
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="grid gap-1.5">
+      <label for={nameId} class="text-sm font-medium">Name</label>
+      <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={`h-10 ${field}`} />
+      <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
+    </div>
+
+    <div class="grid gap-1.5">
+      <label for={emailId} class="text-sm font-medium">Email (@wisc.edu)</label>
+      <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={`h-10 ${field}`} />
+      <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
+    </div>
+  </div>
+
+  {!type && (
+    <div class="grid gap-1.5">
+      <label for={typeId} class="text-sm font-medium">What are you reaching out about?</label>
+      <select id={typeId} name="type" required class={`h-10 ${field}`}>
+        <option value="inquiry">General Inquiry</option>
+        <option value="digest">Start a Digest</option>
+        <option value="join">Join the Team</option>
+      </select>
+    </div>
+  )}
+
+  <div class="grid gap-1.5">
+    <div class="flex items-baseline justify-between gap-2">
+      <label for={messageId} class="text-sm font-medium" id="inq-message-label">Message</label>
+      <span class="text-xs tabular-nums text-muted-foreground" id="inq-message-count" data-message-count>0 / {MAX_MESSAGE_WORDS} words</span>
+    </div>
+    <textarea id={messageId} name="message" required maxlength={MAX_MESSAGE} aria-describedby={`inq-message-count ${messageErrId}`} class={`resize-none overflow-hidden ${field}`} style="width:530px;max-width:100%;height:120px" placeholder="How can we help?"></textarea>
+    <p class="text-sm text-destructive" id={messageErrId} data-error-for="message" hidden></p>
+  </div>
+
+  <div class="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+    <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+  </div>
+
+  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-progress disabled:opacity-60">Send message</button>
+
+  <p class="inquiry-status m-0 text-sm font-medium" id={statusId} role="status" aria-live="polite" data-status hidden></p>
+</form>
+
+<script>
+  import { validateSubmission, countWords, type SubmissionField } from '../lib/submission-validation';
+  import { MAX_MESSAGE_WORDS } from '../lib/limits';
+  import { rateLimitMessage } from '../lib/rate-limit-message';
+  import type { SubmissionType } from '../db/schema';
+
+  type ApiError = { field: SubmissionField; message: string };
+
+  function setError(form: HTMLFormElement, field: SubmissionField, message: string | null): void {
+    const input = form.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[name="${field}"]`);
+    const box = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+    if (!input || !box) return;
+    if (message) {
+      box.textContent = message;
+      box.hidden = false;
+      input.setAttribute('aria-invalid', 'true');
+    } else {
+      box.textContent = '';
+      box.hidden = true;
+      input.removeAttribute('aria-invalid');
+    }
+  }
+
+  function clearErrors(form: HTMLFormElement): void {
+    (['name', 'email', 'message', 'type'] as SubmissionField[]).forEach((f) => setError(form, f, null));
+  }
+
+  function showStatus(form: HTMLFormElement, message: string, tone: 'ok' | 'error'): void {
+    const status = form.querySelector<HTMLElement>('[data-status]');
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.tone = tone;
+    status.hidden = false;
+  }
+
+  function firstInvalid(form: HTMLFormElement, errors: ApiError[]): void {
+    const first = form.querySelector<HTMLElement>(`[name="${errors[0]?.field}"]`);
+    first?.focus();
+  }
+
+  function enhance(form: HTMLFormElement): void {
+    const typeSelect = form.querySelector<HTMLSelectElement>('[name="type"]');
+    const messageLabel = form.querySelector<HTMLLabelElement>('#inq-message-label');
+    const messageInput = form.querySelector<HTMLTextAreaElement>('[name="message"]');
+    const messageCount = form.querySelector<HTMLElement>('[data-message-count]');
+
+    if (messageInput) {
+      const enforceWordLimit = () => {
+        const parts = messageInput.value.trim().split(/\s+/);
+        if (parts.length > MAX_MESSAGE_WORDS) {
+          messageInput.value = parts.slice(0, MAX_MESSAGE_WORDS).join(' ');
+        }
+      };
+      const updateMessage = () => {
+        if (messageCount) {
+          const words = countWords(messageInput.value);
+          messageCount.textContent = `${words} / ${MAX_MESSAGE_WORDS} words`;
+          messageCount.classList.toggle('text-destructive', words >= MAX_MESSAGE_WORDS);
+        }
+        // Grow to fit content, never below the 120px resting height.
+        messageInput.style.height = 'auto';
+        messageInput.style.height = `${Math.max(120, messageInput.scrollHeight)}px`;
+      };
+      messageInput.addEventListener('input', (e) => {
+        // Skip mid-composition (IME) so partial input isn't truncated.
+        if (!(e instanceof InputEvent && e.isComposing)) enforceWordLimit();
+        updateMessage();
+      });
+      updateMessage();
+    }
+
+    if (typeSelect && messageLabel && messageInput) {
+      const updateFields = () => {
+        const val = typeSelect.value;
+        if (val === 'join') {
+          messageLabel.textContent = 'Why do you want to join? Tell us about yourself.';
+          messageInput.placeholder = 'I am a...';
+        } else if (val === 'digest') {
+          messageLabel.textContent = 'What research area do you want to cover?';
+          messageInput.placeholder = 'I am interested in starting a digest on...';
+        } else {
+          messageLabel.textContent = 'Message';
+          messageInput.placeholder = 'How can we help?';
+        }
+      };
+
+      typeSelect.addEventListener('change', updateFields);
+
+      // Initialize from URL query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlType = urlParams.get('type');
+      if (urlType && ['inquiry', 'join', 'digest'].includes(urlType)) {
+        typeSelect.value = urlType;
+      }
+      updateFields();
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors(form);
+      const data = new FormData(form);
+      const input = {
+        name: String(data.get('name') ?? ''),
+        email: String(data.get('email') ?? ''),
+        type: String(data.get('type') ?? '') as SubmissionType,
+        message: String(data.get('message') ?? ''),
+      };
+      const company = String(data.get('company') ?? '');
+
+      const clientErrors = validateSubmission(input);
+      if (clientErrors.length > 0) {
+        clientErrors.forEach((err) => setError(form, err.field, err.message));
+        firstInvalid(form, clientErrors);
+        return;
+      }
+
+      const button = form.querySelector<HTMLButtonElement>('[type="submit"]');
+      if (button) button.disabled = true;
+      try {
+        const res = await fetch('/api/inquiry', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ...input, company }),
+        });
+        if (res.status === 201) {
+          form.reset();
+          if (typeSelect) typeSelect.dispatchEvent(new Event('change'));
+          messageInput?.dispatchEvent(new Event('input'));
+          showStatus(form, "Thanks — we've got your message and will be in touch.", 'ok');
+        } else if (res.status === 400) {
+          const body = (await res.json().catch(() => ({}))) as { errors?: ApiError[] };
+          const errors = body.errors ?? [];
+          errors.forEach((err) => setError(form, err.field, err.message));
+          firstInvalid(form, errors);
+        } else if (res.status === 429) {
+          // Values are deliberately not reset here, so the user can resend once the wait is over.
+          const body = (await res.json().catch(() => ({}))) as { retryAfterSeconds?: number };
+          showStatus(form, rateLimitMessage(body.retryAfterSeconds), 'error');
+        } else {
+          showStatus(form, 'Something went wrong. Please try again.', 'error');
+        }
+      } catch {
+        showStatus(form, 'Network error. Please try again.', 'error');
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  }
+
+  document.querySelectorAll<HTMLFormElement>('form[data-inquiry]').forEach(enhance);
+</script>
+
+<style>
+  .inquiry-status[data-tone='ok'] { color: var(--cardinal-700); }
+  .inquiry-status[data-tone='error'] { color: var(--destructive); }
+</style>

@@ -1,0 +1,379 @@
+---
+import type { MeetingGroup } from '../lib/rsvp-grouping';
+import type { EventRow, RsvpStatus } from '../db/schema';
+import { describeMeetingWhen } from '../lib/meeting-when';
+
+interface Props {
+  groups: MeetingGroup[];
+  events: EventRow[];
+  today: string;
+}
+const { groups, events, today } = Astro.props;
+
+// Attendance status → label + badge classes. Kept in sync with STATUS in the client script below.
+const STATUS_META: Record<RsvpStatus, { label: string; badge: string }> = {
+  pending: { label: 'Pending', badge: 'bg-muted text-muted-foreground' },
+  present: { label: 'Present', badge: 'bg-success-tint text-success' },
+  absent: { label: 'Absent', badge: 'bg-destructive/10 text-destructive' },
+};
+const badgeBase = 'status-badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap';
+
+const formatTimestamp = (iso: string): string =>
+  new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+const eventFor = (meeting: string): EventRow | undefined => events.find((e) => e.slug === meeting);
+
+const th = 'border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase';
+const td = 'border-b border-border/50 px-5 py-3.5 align-top';
+---
+{
+  groups.length === 0 ? (
+    <p class="rounded-2xl border border-border bg-card p-8 text-muted-foreground">No RSVPs yet.</p>
+  ) : (
+    <>
+      {groups.map((group) => {
+        const event = eventFor(group.meeting);
+        const when = event ? describeMeetingWhen(event.date, today) : null;
+        const title = event?.title ?? group.meeting;
+        const meta = event ? [event.time, event.location].filter(Boolean).join(' · ') : '';
+
+        return (
+          <section
+            class="mb-4 overflow-hidden rounded-2xl border border-border bg-card shadow-xs"
+            data-meeting-card
+            data-meeting={group.meeting}
+            data-when={when?.bucket ?? ''}
+          >
+            <button type="button" class="flex w-full items-center gap-3 border-b border-border/60 px-5 py-4 text-left transition-colors hover:bg-muted/30" data-toggle aria-expanded="true">
+              <svg class="rsvp-chevron size-[18px] shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-baseline gap-2">
+                  <h3 class="font-serif text-lg font-bold">{title}</h3>
+                  {when && (
+                    <span
+                      class:list={[
+                        'rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap',
+                        when.bucket === 'past' ? 'bg-muted text-muted-foreground' : 'bg-cardinal-tint text-primary',
+                      ]}
+                    >
+                      {when.label}
+                    </span>
+                  )}
+                </div>
+                {meta && <p class="mt-0.5 truncate text-sm text-muted-foreground">{meta}</p>}
+              </div>
+              <span class="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-bold text-muted-foreground" data-guest-count>
+                {group.rsvps.length} {group.rsvps.length === 1 ? 'guest' : 'guests'}
+              </span>
+            </button>
+
+            <div class="rsvp-body">
+              <div class="rsvp-body-inner overflow-x-auto">
+                <table class="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      <th scope="col" class={th}>Name</th>
+                      <th scope="col" class={th}>Email</th>
+                      <th scope="col" class={th}>Status</th>
+                      <th scope="col" class={th}>RSVP'd</th>
+                      <th scope="col" class={`${th} w-[5.5rem]`} aria-label="Actions" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.rsvps.map((rsvp) => (
+                      <tr
+                        class="transition-colors hover:bg-muted/40"
+                        data-rsvp-id={rsvp.id}
+                        data-search={`${rsvp.name} ${rsvp.email}`.toLowerCase()}
+                      >
+                        <td class={`${td} font-semibold`} data-field="name">{rsvp.name}</td>
+                        <td class={`${td} text-muted-foreground`} data-field="email">{rsvp.email}</td>
+                        <td class={td} data-field="status" data-status={rsvp.status}>
+                          <span class:list={[badgeBase, STATUS_META[rsvp.status].badge]}>{STATUS_META[rsvp.status].label}</span>
+                        </td>
+                        <td class={`${td} text-muted-foreground whitespace-nowrap`}>{formatTimestamp(rsvp.created_at)}</td>
+                        <td class={`${td} w-[5.5rem]`}>
+                          <div class="flex items-center justify-end gap-0.5">
+                            <button type="button" style="display: none;" class="rsvp-icon-btn" data-action="edit" data-mode="edit" aria-label={`Edit ${rsvp.name}`} title="Edit RSVP">
+                              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /></svg>
+                            </button>
+                            <button type="button" style="display: none;" class="rsvp-icon-btn rsvp-icon-btn--confirm" data-action="save" data-mode="editing" aria-label="Save changes" title="Save changes">
+                              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                            </button>
+                            <button type="button" style="display: none;" class="rsvp-icon-btn" data-action="cancel" data-mode="editing" aria-label="Cancel edit" title="Cancel edit">
+                              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                            </button>
+                            <button type="button" style="display: none;" class="rsvp-icon-btn rsvp-icon-btn--danger" data-action="delete" data-mode="edit" aria-label={`Delete RSVP for ${rsvp.name}`} title="Delete RSVP">
+                              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        );
+      })}
+      <p id="rsvp-no-results" class="hidden rounded-2xl border border-border bg-card px-5 py-14 text-center text-muted-foreground">
+        No RSVPs match these filters.
+      </p>
+    </>
+  )
+}
+
+<style>
+  /* Grid-based collapse avoids measuring content height in JS. */
+  .rsvp-body {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .rsvp-body-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+  [data-meeting-card].is-collapsed .rsvp-body {
+    grid-template-rows: 0fr;
+  }
+  .rsvp-chevron {
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  [data-meeting-card].is-collapsed .rsvp-chevron {
+    transform: rotate(-90deg);
+  }
+
+  .rsvp-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--color-muted-foreground);
+    transition: background-color 150ms ease-out, color 150ms ease-out;
+  }
+  .rsvp-icon-btn:hover {
+    background: var(--color-muted);
+    color: var(--color-foreground);
+  }
+  .rsvp-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-ring) 50%, transparent);
+  }
+  .rsvp-icon-btn--danger:hover {
+    background: color-mix(in oklch, var(--color-destructive) 12%, transparent);
+    color: var(--color-destructive);
+  }
+  .rsvp-icon-btn--confirm:hover {
+    background: color-mix(in oklch, var(--color-success) 15%, transparent);
+    color: var(--color-success);
+  }
+
+  .rsvp-row-input {
+    width: 100%;
+    height: 2rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--color-ring);
+    background: var(--color-background);
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-ring) 20%, transparent);
+  }
+
+  tr.rsvp-row-flash td {
+    animation: rsvp-row-flash 900ms ease-out;
+  }
+  @keyframes rsvp-row-flash {
+    0% { background-color: color-mix(in oklch, var(--color-success-tint) 90%, transparent); }
+    100% { background-color: transparent; }
+  }
+  tr.rsvp-row-leaving {
+    opacity: 0;
+    transform: translateX(4px);
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rsvp-body,
+    .rsvp-chevron,
+    tr.rsvp-row-flash td,
+    tr.rsvp-row-leaving {
+      transition-duration: 0.001ms !important;
+      animation-duration: 0.001ms !important;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest<HTMLElement>('[data-meeting-card]');
+      if (!card) return;
+      const collapsed = card.classList.toggle('is-collapsed');
+      btn.setAttribute('aria-expanded', String(!collapsed));
+    });
+  });
+
+  // Mirrors the Submissions inbox Edit/Done toggle pattern in InquiryTable.astro.
+  const editBtn = document.getElementById('edit-rsvps-btn');
+  if (editBtn) {
+    editBtn.addEventListener('click', () => {
+      const isEditing = editBtn.getAttribute('data-editing') === 'true';
+      const nextEditing = !isEditing;
+      editBtn.setAttribute('data-editing', String(nextEditing));
+      editBtn.textContent = nextEditing ? 'Done' : 'Manage RSVPs';
+
+      document.querySelectorAll<HTMLButtonElement>('[data-mode="edit"]').forEach((btn) => {
+        btn.style.display = nextEditing ? 'inline-flex' : 'none';
+      });
+      if (!nextEditing) {
+        // Leaving manage mode also cancels any row still mid-edit.
+        document.querySelectorAll<HTMLTableRowElement>('tr[data-editing="true"]').forEach((row) => {
+          row.querySelector<HTMLButtonElement>('[data-action="cancel"]')?.click();
+        });
+      }
+    });
+  }
+
+  // Kept in sync with STATUS_META in the component frontmatter above.
+  const STATUS = {
+    pending: { label: 'Pending', badge: 'bg-muted text-muted-foreground' },
+    present: { label: 'Present', badge: 'bg-success-tint text-success' },
+    absent: { label: 'Absent', badge: 'bg-destructive/10 text-destructive' },
+  } as const;
+  type StatusKey = keyof typeof STATUS;
+  const BADGE_BASE = 'status-badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap';
+
+  document.querySelectorAll<HTMLTableRowElement>('tbody tr[data-rsvp-id]').forEach((row) => {
+    let originalStatus: StatusKey = 'pending';
+
+    const nameTd = row.querySelector<HTMLElement>('[data-field="name"]')!;
+    const statusTd = row.querySelector<HTMLElement>('[data-field="status"]')!;
+    const id = row.dataset.rsvpId;
+
+    const readStatus = (): StatusKey => {
+      const s = statusTd.dataset.status;
+      return s === 'present' || s === 'absent' ? s : 'pending';
+    };
+
+    const renderBadge = (status: StatusKey) => {
+      statusTd.innerHTML = '';
+      const span = document.createElement('span');
+      span.className = `${BADGE_BASE} ${STATUS[status].badge}`;
+      span.textContent = STATUS[status].label;
+      statusTd.append(span);
+      statusTd.dataset.status = status;
+    };
+
+    const showEditingActions = (editing: boolean) => {
+      row.querySelectorAll<HTMLButtonElement>('[data-mode="editing"]').forEach((btn) => {
+        btn.style.display = editing ? 'inline-flex' : 'none';
+      });
+      row.querySelectorAll<HTMLButtonElement>('[data-mode="edit"]').forEach((btn) => {
+        btn.style.display = editing ? 'none' : editBtn?.getAttribute('data-editing') === 'true' ? 'inline-flex' : 'none';
+      });
+    };
+
+    row.querySelector('[data-action="edit"]')?.addEventListener('click', () => {
+      originalStatus = readStatus();
+      statusTd.innerHTML = '';
+      statusTd.append(makeStatusSelect(originalStatus));
+      row.dataset.editing = 'true';
+      showEditingActions(true);
+      statusTd.querySelector('select')?.focus();
+    });
+
+    row.querySelector('[data-action="cancel"]')?.addEventListener('click', () => {
+      renderBadge(originalStatus);
+      delete row.dataset.editing;
+      showEditingActions(false);
+    });
+
+    row.querySelector('[data-action="save"]')?.addEventListener('click', async () => {
+      const status = (statusTd.querySelector<HTMLSelectElement>('select')?.value as StatusKey) || originalStatus;
+
+      try {
+        const res = await fetch(`/admin/api/rsvps/${id}`, {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ status }),
+        });
+        if (!res.ok) throw new Error();
+      } catch {
+        alert('Failed to save changes.');
+        renderBadge(originalStatus);
+        delete row.dataset.editing;
+        showEditingActions(false);
+        return;
+      }
+
+      renderBadge(status);
+      delete row.dataset.editing;
+      showEditingActions(false);
+      row.classList.remove('rsvp-row-flash');
+      void row.offsetWidth;
+      row.classList.add('rsvp-row-flash');
+    });
+
+    row.querySelector('[data-action="delete"]')?.addEventListener('click', async () => {
+      if (!window.confirm(`Remove ${nameTd.textContent}'s RSVP? This cannot be undone.`)) return;
+
+      try {
+        const res = await fetch(`/admin/api/rsvps/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+      } catch {
+        alert('Failed to delete RSVP.');
+        return;
+      }
+
+      const card = row.closest<HTMLElement>('[data-meeting-card]');
+      row.classList.add('rsvp-row-leaving');
+      setTimeout(() => {
+        row.remove();
+        if (card) updateGuestCount(card);
+        document.dispatchEvent(new CustomEvent('rsvps:changed'));
+      }, 200);
+    });
+  });
+
+  function makeStatusSelect(current: StatusKey): HTMLSelectElement {
+    const select = document.createElement('select');
+    select.className = 'rsvp-row-input';
+    select.setAttribute('aria-label', 'Status');
+    (Object.keys(STATUS) as StatusKey[]).forEach((key) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = STATUS[key].label;
+      if (key === current) opt.selected = true;
+      select.append(opt);
+    });
+    return select;
+  }
+
+  function updateGuestCount(card: HTMLElement) {
+    const remaining = card.querySelectorAll('tbody tr[data-rsvp-id]').length;
+    const countEl = card.querySelector('[data-guest-count]');
+    if (countEl) countEl.textContent = `${remaining} ${remaining === 1 ? 'guest' : 'guests'}`;
+
+    if (remaining === 0) {
+      const body = card.querySelector('.rsvp-body-inner');
+      if (body) {
+        body.innerHTML = '';
+        const empty = document.createElement('p');
+        empty.className = 'px-5 py-8 text-center text-muted-foreground';
+        empty.innerHTML = '<strong class="mb-1 block font-medium text-foreground">No RSVPs for this meeting yet</strong>Guests will show up here as they RSVP.';
+        body.append(empty);
+      }
+    }
+  }
+</script>

@@ -1,0 +1,29 @@
+---
+interface Props {
+  title: string;
+  count?: string;
+  tone?: 'default' | 'destructive';
+}
+const { title, count, tone = 'default' } = Astro.props;
+const isDestructive = tone === 'destructive';
+---
+<section
+  class:list={[
+    'mb-6 overflow-hidden rounded-2xl border bg-card shadow-xs',
+    isDestructive ? 'border-destructive/30' : 'border-border',
+  ]}
+>
+  <div
+    class:list={[
+      'flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4',
+      isDestructive ? 'border-destructive/20 bg-destructive/5' : 'border-border/60',
+    ]}
+  >
+    <div class="flex items-baseline gap-3">
+      <h2 class:list={['font-serif text-xl font-bold', isDestructive && 'text-destructive']}>{title}</h2>
+      {count && <span class="text-sm text-muted-foreground">{count}</span>}
+    </div>
+    <slot name="action" />
+  </div>
+  <slot />
+</section>

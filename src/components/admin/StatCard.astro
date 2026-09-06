@@ -1,0 +1,24 @@
+---
+interface Props {
+  label: string;
+  value: string | number;
+  hint?: string;
+  iconPath: string;
+  href?: string;
+}
+const { label, value, hint, iconPath, href } = Astro.props;
+
+const Component = href ? 'a' : 'div';
+---
+<Component href={href} class={`block rounded-2xl border border-border bg-card p-5 shadow-xs transition-all ${href ? 'hover:border-primary/40 hover:shadow-sm' : ''}`}>
+  <div class="mb-4 flex items-center justify-between">
+    <span class="grid size-10 place-items-center rounded-xl bg-cardinal-tint text-primary">
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d={iconPath} />
+      </svg>
+    </span>
+    {hint && <span class="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">{hint}</span>}
+  </div>
+  <div class="font-serif text-4xl leading-none font-bold tracking-tight tabular-nums">{value}</div>
+  <div class="mt-1.5 text-sm font-medium text-muted-foreground">{label}</div>
+</Component>

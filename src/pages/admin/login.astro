@@ -1,0 +1,44 @@
+---
+// Embedded Clerk sign-in, reachable while signed-out; hash routing keeps sign-in sub-states on /admin/login. See docs/claude/0011-admin-auth.md
+export const prerender = false;
+import { SignIn } from '@clerk/astro/components';
+import '@fontsource/spectral/latin-700.css';
+import '@fontsource/spectral/latin-800.css';
+import '@fontsource-variable/hanken-grotesk';
+import '../../styles/global.css';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://clerk.accounts.dev" crossorigin="anonymous" />
+    <title>Sign in · MadCoders Admin</title>
+  </head>
+  <body class="min-h-dvh bg-canvas text-foreground">
+    <div class="grid min-h-dvh place-items-center px-6 py-12">
+      <div class="w-full max-w-sm">
+        <a href="/" class="mb-8 flex items-center justify-center gap-2.5">
+          <span class="grid size-9 place-items-center rounded-lg bg-primary font-serif text-lg font-extrabold text-primary-foreground">M</span>
+          <span class="font-serif text-xl font-bold">MadCoders</span>
+        </a>
+        <div class="clerk-container relative flex justify-center min-h-[380px] w-full">
+          <div class="clerk-skeleton absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card p-8 shadow-xs animate-pulse">
+            <div class="mb-6 size-10 rounded-full bg-muted"></div>
+            <div class="mb-4 h-6 w-36 rounded-md bg-muted"></div>
+            <div class="mb-3 h-10 w-full rounded-lg bg-muted"></div>
+            <div class="mb-4 h-10 w-full rounded-lg bg-muted"></div>
+            <div class="h-10 w-full rounded-lg bg-primary/20"></div>
+          </div>
+          <SignIn routing="hash" forceRedirectUrl="/admin" />
+        </div>
+      </div>
+    </div>
+    <style>
+      .clerk-container:has([data-clerk-id]:not(:empty)) .clerk-skeleton {
+        display: none;
+      }
+    </style>
+  </body>
+</html>

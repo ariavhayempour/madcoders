@@ -1,0 +1,215 @@
+---
+import type { MeetingGroup } from '../lib/rsvp-grouping';
+import type { EventRow } from '../db/schema';
+import { describeMeetingWhen, type MeetingWhenBucket } from '../lib/meeting-when';
+
+interface Props {
+  groups: MeetingGroup[];
+  events: EventRow[];
+  today: string;
+}
+const { groups, events, today } = Astro.props;
+
+const eventFor = (meeting: string): EventRow | undefined => events.find((e) => e.slug === meeting);
+
+// '' means no matching event — the meeting's date is unknown, so it's never filtered out by All/Upcoming/Past.
+const bucketOf = (meeting: string): MeetingWhenBucket | '' => {
+  const event = eventFor(meeting);
+  return event ? describeMeetingWhen(event.date, today).bucket : '';
+};
+
+const total = groups.reduce((sum, g) => sum + g.rsvps.length, 0);
+const countWhere = (bucket: MeetingWhenBucket) =>
+  groups.reduce((sum, g) => (bucketOf(g.meeting) === bucket || bucketOf(g.meeting) === '' ? sum + g.rsvps.length : sum), 0);
+
+const segBtn = 'rounded-[5px] px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+const chipBtn = 'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+---
+<section class="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-xs" data-rsvp-filters>
+  <div class="flex flex-wrap items-center gap-3 border-b border-border/60 px-5 py-4">
+    <div class="relative w-full max-w-[280px]">
+      <svg class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        id="rsvp-search"
+        type="text"
+        placeholder="Search name or email"
+        class="h-9 w-full rounded-md border border-input bg-background pl-9 pr-8 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      />
+      <button
+        id="rsvp-search-clear"
+        type="button"
+        class="absolute right-2 top-1/2 hidden -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        aria-label="Clear search"
+      >
+        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="inline-flex rounded-md border border-input bg-background p-0.5 text-sm" role="group" aria-label="Filter by meeting time">
+      <button type="button" data-when="all" aria-pressed="true" class={`${segBtn} bg-cardinal-tint text-cardinal-700`}>
+        All <span class="font-normal" data-count-when="all">({total})</span>
+      </button>
+      <button type="button" data-when="upcoming" aria-pressed="false" class={`${segBtn} text-muted-foreground hover:bg-muted`}>
+        Upcoming <span class="font-normal" data-count-when="upcoming">({countWhere('upcoming')})</span>
+      </button>
+      <button type="button" data-when="past" aria-pressed="false" class={`${segBtn} text-muted-foreground hover:bg-muted`}>
+        Past <span class="font-normal" data-count-when="past">({countWhere('past')})</span>
+      </button>
+    </div>
+
+    <div class="ml-auto flex items-center gap-3">
+      <button type="button" id="rsvp-clear-filters" class="hidden text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded-sm">
+        Clear filters
+      </button>
+      <slot name="action" />
+    </div>
+  </div>
+
+  {groups.length > 0 && (
+    <div class="flex flex-wrap items-center gap-2 px-5 py-4">
+      <span class="mr-1 text-xs font-bold tracking-[0.06em] text-muted-foreground uppercase">Meeting</span>
+      {groups.map((g) => {
+        const event = eventFor(g.meeting);
+        return (
+          <button type="button" data-meeting={g.meeting} aria-pressed="false" class={`${chipBtn} border-input bg-background text-muted-foreground hover:bg-muted`}>
+            {event?.title ?? g.meeting} <span class="font-normal" data-count-meeting={g.meeting}>({g.rsvps.length})</span>
+          </button>
+        );
+      })}
+    </div>
+  )}
+</section>
+
+<script>
+  const SEG_BASE = 'rounded-[5px] px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+  const SEG_ACTIVE = 'bg-cardinal-tint text-cardinal-700';
+  const SEG_INACTIVE = 'text-muted-foreground hover:bg-muted';
+
+  const CHIP_BASE = 'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+  const CHIP_ACTIVE = 'border-primary bg-primary text-primary-foreground';
+  const CHIP_INACTIVE = 'border-input bg-background text-muted-foreground hover:bg-muted';
+
+  const searchInput = document.getElementById('rsvp-search') as HTMLInputElement | null;
+  const searchClear = document.getElementById('rsvp-search-clear') as HTMLButtonElement | null;
+  const clearAllBtn = document.getElementById('rsvp-clear-filters') as HTMLButtonElement | null;
+  const whenButtons = document.querySelectorAll<HTMLButtonElement>('[data-rsvp-filters] [data-when]');
+  const meetingChips = document.querySelectorAll<HTMLButtonElement>('[data-rsvp-filters] [data-meeting]');
+
+  if (searchInput && clearAllBtn && whenButtons.length > 0) {
+    const state = { when: 'all', meetings: new Set<string>(), search: '' };
+
+    const getCards = () => document.querySelectorAll<HTMLElement>('[data-meeting-card]');
+    const whenMatches = (card: HTMLElement) => state.when === 'all' || card.dataset.when === state.when || card.dataset.when === '';
+    const meetingMatches = (card: HTMLElement) => state.meetings.size === 0 || state.meetings.has(card.dataset.meeting ?? '');
+
+    function update() {
+      const cards = [...getCards()];
+      let anyVisible = false;
+      const searchScopedCount = new Map<HTMLElement, number>();
+
+      cards.forEach((card) => {
+        let visibleRows = 0;
+        const rows = card.querySelectorAll<HTMLElement>('[data-rsvp-id]');
+        rows.forEach((row) => {
+          const search = (row.dataset.search ?? '').toLowerCase();
+          const show = state.search === '' || search.includes(state.search);
+          row.classList.toggle('hidden', !show);
+          if (show) visibleRows++;
+        });
+        searchScopedCount.set(card, visibleRows);
+
+        const show = whenMatches(card) && meetingMatches(card) && (rows.length === 0 || visibleRows > 0);
+        card.classList.toggle('hidden', !show);
+        if (show) anyVisible = true;
+      });
+
+      const noResults = document.getElementById('rsvp-no-results');
+      noResults?.classList.toggle('hidden', anyVisible || cards.length === 0);
+
+      // Segment counts scope by the meeting-chip selection, so switching segments previews what each choice would show.
+      const setWhenCount = (key: string, n: number) => {
+        const el = document.querySelector<HTMLElement>(`[data-count-when="${key}"]`);
+        if (el) el.textContent = `(${n})`;
+      };
+      const meetingScoped = cards.filter(meetingMatches);
+      setWhenCount('all', meetingScoped.reduce((sum, c) => sum + (searchScopedCount.get(c) ?? 0), 0));
+      (['upcoming', 'past'] as const).forEach((bucket) => {
+        const n = meetingScoped
+          .filter((c) => c.dataset.when === bucket || c.dataset.when === '')
+          .reduce((sum, c) => sum + (searchScopedCount.get(c) ?? 0), 0);
+        setWhenCount(bucket, n);
+      });
+
+      // Meeting-chip counts scope by the when-filter (not by meeting selection itself).
+      cards.filter(whenMatches).forEach((card) => {
+        const el = document.querySelector<HTMLElement>(`[data-count-meeting="${card.dataset.meeting}"]`);
+        if (el) el.textContent = `(${searchScopedCount.get(card) ?? 0})`;
+      });
+
+      const anyActive = state.when !== 'all' || state.meetings.size > 0 || state.search !== '';
+      clearAllBtn!.classList.toggle('hidden', !anyActive);
+      searchClear?.classList.toggle('hidden', state.search === '');
+
+      document.dispatchEvent(new CustomEvent('rsvps:filtered'));
+    }
+
+    function setActiveWhen(button: HTMLButtonElement) {
+      whenButtons.forEach((b) => {
+        const active = b === button;
+        b.setAttribute('aria-pressed', String(active));
+        b.className = `${SEG_BASE} ${active ? SEG_ACTIVE : SEG_INACTIVE}`;
+      });
+    }
+
+    whenButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.when = btn.dataset.when ?? 'all';
+        setActiveWhen(btn);
+        update();
+      });
+    });
+
+    meetingChips.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const m = btn.dataset.meeting ?? '';
+        const active = state.meetings.has(m);
+        if (active) state.meetings.delete(m);
+        else state.meetings.add(m);
+        btn.setAttribute('aria-pressed', String(!active));
+        btn.className = `${CHIP_BASE} ${!active ? CHIP_ACTIVE : CHIP_INACTIVE}`;
+        update();
+      });
+    });
+
+    searchInput.addEventListener('input', () => {
+      state.search = searchInput.value.trim().toLowerCase();
+      update();
+    });
+    searchClear?.addEventListener('click', () => {
+      searchInput.value = '';
+      state.search = '';
+      searchInput.focus();
+      update();
+    });
+
+    clearAllBtn.addEventListener('click', () => {
+      state.when = 'all';
+      state.meetings.clear();
+      state.search = '';
+      searchInput.value = '';
+      const allBtn = document.querySelector<HTMLButtonElement>('[data-rsvp-filters] [data-when="all"]');
+      if (allBtn) setActiveWhen(allBtn);
+      meetingChips.forEach((btn) => {
+        btn.setAttribute('aria-pressed', 'false');
+        btn.className = `${CHIP_BASE} ${CHIP_INACTIVE}`;
+      });
+      update();
+    });
+
+    document.addEventListener('rsvps:changed', update);
+    update();
+  }
+</script>

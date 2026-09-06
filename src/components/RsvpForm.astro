@@ -1,0 +1,179 @@
+---
+import { MAX_NAME, MAX_EMAIL } from '../lib/limits';
+
+interface Props {
+  meeting: string; // slug identity; also namespaces element ids so many forms coexist on one page
+}
+const { meeting } = Astro.props;
+const nameId = `rsvp-name-${meeting}`;
+const emailId = `rsvp-email-${meeting}`;
+const nameErrId = `rsvp-name-err-${meeting}`;
+const emailErrId = `rsvp-email-err-${meeting}`;
+const statusId = `rsvp-status-${meeting}`;
+const dialogId = `rsvp-dialog-${meeting}`;
+
+const field = 'h-10 w-full rounded-lg border border-input bg-background px-3 text-base md:text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
+---
+<form class="rsvp mt-4 grid gap-4 rounded-2xl border border-border bg-card p-6" method="post" action="/api/rsvp" novalidate data-rsvp data-meeting={meeting}>
+  <p class="font-serif text-lg font-semibold">RSVP for this meeting</p>
+
+  <div class="grid gap-1.5">
+    <label for={nameId} class="text-sm font-medium">Name</label>
+    <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={field} />
+    <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
+  </div>
+
+  <div class="grid gap-1.5">
+    <label for={emailId} class="text-sm font-medium">Email (@wisc.edu)</label>
+    <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={field} />
+    <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
+  </div>
+
+  <input type="hidden" name="meeting" value={meeting} />
+
+  <div class="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+    <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+  </div>
+
+  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-progress disabled:opacity-60">RSVP</button>
+
+  <p class="rsvp-status m-0 text-sm font-medium" id={statusId} role="status" aria-live="polite" data-status hidden></p>
+
+  <div class="fixed inset-0 z-50 grid place-items-center bg-black/50 p-6" id={dialogId} role="dialog" aria-modal="true" aria-labelledby={`${dialogId}-title`} data-modal hidden>
+    <div class="max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
+      <h2 id={`${dialogId}-title`} class="font-serif text-xl font-bold">You're already registered</h2>
+      <p class="mt-2 text-muted-foreground">This email has already RSVP'd for this meeting.</p>
+      <button type="button" data-modal-close class="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">Close</button>
+    </div>
+  </div>
+</form>
+
+<script>
+  import { validateRsvp, type RsvpField } from '../lib/rsvp-validation';
+
+  type ApiError = { field: RsvpField; message: string };
+
+  function setError(form: HTMLFormElement, field: RsvpField, message: string | null): void {
+    const input = form.querySelector<HTMLInputElement>(`[name="${field}"]`);
+    const box = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+    if (!input || !box) return;
+    if (message) {
+      box.textContent = message;
+      box.hidden = false;
+      input.setAttribute('aria-invalid', 'true');
+    } else {
+      box.textContent = '';
+      box.hidden = true;
+      input.removeAttribute('aria-invalid');
+    }
+  }
+
+  function clearErrors(form: HTMLFormElement): void {
+    (['name', 'email'] as RsvpField[]).forEach((f) => setError(form, f, null));
+  }
+
+  function showStatus(form: HTMLFormElement, message: string, tone: 'ok' | 'error'): void {
+    const status = form.querySelector<HTMLElement>('[data-status]');
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.tone = tone;
+    status.hidden = false;
+  }
+
+  function firstInvalid(form: HTMLFormElement, errors: ApiError[]): void {
+    const first = form.querySelector<HTMLInputElement>(`[name="${errors[0]?.field}"]`);
+    first?.focus();
+  }
+
+  function openModal(form: HTMLFormElement): void {
+    const modal = form.querySelector<HTMLElement>('[data-modal]');
+    if (!modal) return;
+    const restore = document.activeElement as HTMLElement | null;
+    modal.hidden = false;
+    const focusable = modal.querySelectorAll<HTMLElement>('button, [href], input, [tabindex]:not([tabindex="-1"])');
+    const closeBtn = modal.querySelector<HTMLButtonElement>('[data-modal-close]');
+    closeBtn?.focus();
+
+    const close = (): void => {
+      modal.hidden = true;
+      document.removeEventListener('keydown', onKey);
+      restore?.focus();
+    };
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        close();
+      } else if (e.key === 'Tab' && focusable.length > 0) {
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    closeBtn?.addEventListener('click', close, { once: true });
+  }
+
+  function enhance(form: HTMLFormElement): void {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors(form);
+      const data = new FormData(form);
+      const input = {
+        name: String(data.get('name') ?? ''),
+        email: String(data.get('email') ?? ''),
+        meeting: String(data.get('meeting') ?? ''),
+      };
+      const company = String(data.get('company') ?? '');
+
+      const clientErrors = validateRsvp(input);
+      if (clientErrors.length > 0) {
+        clientErrors.forEach((err) => setError(form, err.field, err.message));
+        firstInvalid(form, clientErrors);
+        return;
+      }
+
+      const button = form.querySelector<HTMLButtonElement>('[type="submit"]');
+      if (button) button.disabled = true;
+      try {
+        const res = await fetch('/api/rsvp', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ...input, company }),
+        });
+        if (res.status === 201) {
+          form.reset();
+          showStatus(form, "You're on the list — see you there!", 'ok');
+        } else if (res.status === 409) {
+          openModal(form);
+        } else if (res.status === 400) {
+          const body = (await res.json().catch(() => ({}))) as { errors?: ApiError[] };
+          const errors = body.errors ?? [];
+          errors.forEach((err) => setError(form, err.field, err.message));
+          firstInvalid(form, errors);
+        } else if (res.status === 429) {
+          // Values are preserved (no reset) so the user can retry after the window.
+          showStatus(form, "You're doing that too often. Please wait a minute and try again.", 'error');
+        } else {
+          // Values are preserved (no reset) so the user can retry.
+          showStatus(form, 'Something went wrong. Please try again.', 'error');
+        }
+      } catch {
+        showStatus(form, 'Network error. Please try again.', 'error');
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  }
+
+  document.querySelectorAll<HTMLFormElement>('form[data-rsvp]').forEach(enhance);
+</script>
+
+<style>
+  .rsvp-status[data-tone='ok'] { color: var(--cardinal-700); }
+  .rsvp-status[data-tone='error'] { color: var(--destructive); }
+</style>

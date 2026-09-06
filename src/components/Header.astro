@@ -1,0 +1,82 @@
+---
+// Every entry is a real <a href> so browser back/forward works natively.
+import { Image } from 'astro:assets';
+import logo from '../assets/images/logo.jpg';
+import MobileNav from './MobileNav';
+import AdminNav, { type AdminLink } from './AdminNav';
+import { UserButton } from '@clerk/astro/components';
+
+interface Props {
+  adminLinks?: AdminLink[];
+}
+
+const { adminLinks } = Astro.props;
+
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/meetings', label: 'Meetings' },
+  { href: '/create-next-digest', label: 'Digests' },
+  { href: '/contact', label: 'Contact' },
+];
+
+const current = Astro.url.pathname;
+const isAdmin = current.startsWith('/admin');
+const isActive = (href: string) =>
+  href === '/' ? current === '/' : current.startsWith(href);
+---
+<header class="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
+  <nav aria-label="Primary" class="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3.5">
+    {isAdmin && adminLinks && (
+      <div class="lg:hidden">
+        <AdminNav client:load links={adminLinks} />
+      </div>
+    )}
+    <a href="/" class="mr-auto flex items-center gap-3">
+      <Image
+        class="h-10 w-auto"
+        src={logo}
+        alt=""
+        width={144}
+        height={96}
+        loading="eager"
+      />
+      <span class="font-serif text-[1.35rem] font-bold tracking-tight text-foreground">MadCoders</span>
+    </a>
+    <ul class="hidden items-center gap-7 md:flex">
+      {links.map((l) => (
+        <li>
+          <a
+            href={l.href}
+            aria-current={isActive(l.href) ? 'page' : undefined}
+            class:list={[
+              'text-[0.95rem] font-medium transition-colors hover:text-primary',
+              isActive(l.href) ? 'text-primary' : 'text-foreground/70',
+            ]}
+          >{l.label}</a>
+        </li>
+      ))}
+      {isAdmin && (
+        <li>
+          <a
+            href="/admin"
+            aria-current={current === '/admin' ? 'page' : undefined}
+            class="inline-flex items-center gap-1.5 rounded-full bg-muted/90 px-3 py-1 text-xs font-semibold text-muted-foreground border border-border/80 transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <span class="size-1.5 rounded-full bg-primary"></span>
+            Admin
+            <span class="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground/75">(Admin only)</span>
+          </a>
+        </li>
+      )}
+    </ul>
+    <div class:list={["flex items-center gap-3", !isAdmin && "md:hidden"]}>
+      {isAdmin && (
+        <div class="flex items-center pl-1">
+          <UserButton />
+        </div>
+      )}
+      <MobileNav client:load links={isAdmin ? [...links, { href: '/admin', label: 'Admin (Admin only)' }] : links} />
+    </div>
+  </nav>
+</header>
+
