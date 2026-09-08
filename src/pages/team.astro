@@ -31,8 +31,7 @@ const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '_');
       <div class="mx-auto max-w-4xl px-6 py-12">
         {team.map((group) => (
           <section class="mt-12 first:mt-0">
-            <p class="mb-2 font-mono text-[11px] text-cardinal-700">"{slug(group.title)}": [</p>
-            <h2 class="mb-6 pl-4 text-xl font-bold tracking-tight text-foreground">{group.title}</h2>
+            <h2 class="mb-4 font-mono text-[13px] font-semibold text-cardinal-700">"{slug(group.title)}": [</h2>
             <ul class="grid list-none gap-4 p-0 pl-4 [grid-template-columns:repeat(auto-fill,minmax(15rem,1fr))]">
               {group.members.filter((m) => m.name !== 'TBD').map((m) => (
                 <li class="rounded-lg border border-editor-line bg-editor-2 p-6 text-center transition-colors hover:border-ink-3">
@@ -48,7 +47,7 @@ const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '_');
                 </li>
               ))}
             </ul>
-            <p class="mt-2 pl-4 font-mono text-[11px] text-cardinal-700">]</p>
+            <p class="mt-4 pl-4 font-mono text-[13px] text-cardinal-700">]</p>
           </section>
         ))}
 

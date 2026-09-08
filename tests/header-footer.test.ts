@@ -40,13 +40,13 @@ describe('branded Footer (Tailwind + tokens)', () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FooterCmp);
     expect(html).toContain('madcoders');
-    expect(html).toContain('https://www.instagram.com/madcoders/');
+    expect(html).toContain('https://www.instagram.com/madcodersuw/');
   });
 
   it('carries the Team link (moved out of the primary nav) and the admin link', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FooterCmp);
     expect(html).toMatch(/href="\/team"/);
-    expect(html).toMatch(/<a[^>]*href="\/admin"[^>]*>[^<]*admin portal/);
+    expect(html).toMatch(/<a[^>]*href="\/admin"[^>]*>[^<]*admin portal/i);
   });
 });

@@ -4,9 +4,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import InquiryForm from '../components/InquiryForm.astro';
 
 const reasons = [
-  { title: 'General Inquiries', body: 'Questions about a meeting, a project, or the club? We read everything.' },
-  { title: 'Start a project / track', body: 'Pitch a new coding project or technical track you want to build with MadCoders.' },
-  { title: 'Join the team', body: 'Help run meetings, organize workshops, or lead a technical track alongside fellow Badgers.' },
+  { title: 'General Inquiries', body: 'Questions about a meeting, the club, or need mentorship? We read everything.' },
+  { title: 'Get Involved', body: 'Start a project, pitch an event, or join the team!' },
 ];
 ---
 <BaseLayout
@@ -30,7 +29,6 @@ const reasons = [
 
       <div class="mx-auto grid max-w-4xl gap-x-16 gap-y-10 px-6 py-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
         <section aria-labelledby="ways-heading">
-          <p class="mb-2 font-mono text-[11px] text-cardinal-700">// ways</p>
           <h2 id="ways-heading" class="text-2xl font-bold tracking-tight text-foreground">Ways to reach out</h2>
           <dl class="mt-6 divide-y divide-editor-line border-y border-editor-line">
             {reasons.map((r) => (
@@ -42,14 +40,13 @@ const reasons = [
           </dl>
           <p class="mt-6 text-sm text-editor-text-dim">
             Prefer social? Find us on{' '}
-            <a class="font-medium text-cardinal-700 underline-offset-4 hover:underline" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">Instagram (@madcoders)</a>{' '}
+            <a class="font-medium text-cardinal-700 underline-offset-4 hover:underline" href="https://www.instagram.com/madcodersuw/" target="_blank" rel="noopener">Instagram (@madcodersuw)</a>{' '}
             and{' '}
-            <a class="font-medium text-cardinal-700 underline-offset-4 hover:underline" href="https://www.instagram.com/madcoders/" target="_blank" rel="noopener">LinkedIn (TBD)</a>.
+            <a class="font-medium text-cardinal-700 underline-offset-4 hover:underline" href="https://www.linkedin.com/company/madcoders/posts/" target="_blank" rel="noopener">LinkedIn</a>.
           </p>
         </section>
 
         <section aria-labelledby="form-heading">
-          <p class="mb-2 font-mono text-[11px] text-cardinal-700">// submit</p>
           <h2 id="form-heading" class="text-2xl font-bold tracking-tight text-foreground">Send us a message</h2>
           <InquiryForm />
         </section>

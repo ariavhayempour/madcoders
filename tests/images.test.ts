@@ -76,7 +76,7 @@ describe('T2 — IDE front-matter hero on the home page', () => {
   // src/assets/images/campus.jpg is retained on disk but no longer referenced.
   it('renders the front-matter block and headline as the first-viewport hero', () => {
     expect(index).toMatch(/frontmatter/);
-    expect(index).toMatch(/Always <span class="text-cardinal-700">shipping\.<\/span>/);
+    expect(index).toMatch(/<span class="text-foreground">org:<\/span>/);
   });
 
   it('gives the RSVP CTA the primary action styling in the hero', () => {

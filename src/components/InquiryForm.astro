@@ -23,13 +23,13 @@ const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 f
 
   <div class="grid gap-4 sm:grid-cols-2">
     <div class="grid gap-1.5">
-      <label for={nameId} class="font-mono text-xs font-medium text-editor-text-dim">name</label>
+      <label for={nameId} class="font-mono text-xs font-medium text-editor-text-dim">Name</label>
       <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={`h-10 ${field}`} />
       <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
     </div>
 
     <div class="grid gap-1.5">
-      <label for={emailId} class="font-mono text-xs font-medium text-editor-text-dim">email (@wisc.edu)</label>
+      <label for={emailId} class="font-mono text-xs font-medium text-editor-text-dim">Email (@wisc.edu)</label>
       <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={`h-10 ${field}`} />
       <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
     </div>
@@ -37,11 +37,10 @@ const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 f
 
   {!type && (
     <div class="grid gap-1.5">
-      <label for={typeId} class="font-mono text-xs font-medium text-editor-text-dim">what are you reaching out about?</label>
+      <label for={typeId} class="font-mono text-xs font-medium text-editor-text-dim">What are you reaching out about?</label>
       <select id={typeId} name="type" required class={`h-10 ${field}`}>
         <option value="inquiry">General Inquiry</option>
-        <option value="digest">Start a Digest</option>
-        <option value="join">Join the Team</option>
+        <option value="join">Get Involved</option>
       </select>
     </div>
   )}
@@ -138,12 +137,9 @@ const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 f
     if (typeSelect && messageLabel && messageInput) {
       const updateFields = () => {
         const val = typeSelect.value;
-        if (val === 'join') {
-          messageLabel.textContent = 'Why do you want to join? Tell us about yourself.';
-          messageInput.placeholder = 'I am a...';
-        } else if (val === 'digest') {
-          messageLabel.textContent = 'What research area do you want to cover?';
-          messageInput.placeholder = 'I am interested in starting a digest on...';
+        if (val === 'join' || val === 'digest') {
+          messageLabel.textContent = 'How would you like to get involved?';
+          messageInput.placeholder = 'Tell us what you want to build, pitch, or help with...';
         } else {
           messageLabel.textContent = 'Message';
           messageInput.placeholder = 'How can we help?';
