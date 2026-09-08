@@ -51,7 +51,7 @@ describe('Footer.astro', () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer);
     expect(html).toContain('Madison, WI, 53706');
-    expect(html).toContain('https://www.instagram.com/madcoders/');
+    expect(html).toContain('https://www.instagram.com/madcodersuw/');
   });
 });
 

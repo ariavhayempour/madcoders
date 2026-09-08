@@ -44,7 +44,9 @@ const { title, description, path } = Astro.props;
     display: flex;
     flex-direction: column;
   }
+  /* Grows so the footer stays at the viewport bottom on pages shorter than the screen. */
   .ide-content {
     display: block;
+    flex: 1;
   }
 </style>

@@ -1,0 +1,43 @@
+---
+export const prerender = true;
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Events"
+  description="Upcoming MadCoders events at UW–Madison."
+  path="/events"
+>
+  <div class="editor-grid">
+    <div class="gutter" aria-hidden="true" data-line-gutter></div>
+
+    <div class="min-w-0">
+      <div class="mx-auto max-w-4xl px-6 pt-14 pb-24 sm:pt-16">
+        <p class="font-mono text-[13px] text-editor-text-faint"># events.md</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .editor-grid {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+  }
+  .gutter {
+    border-right: 1px solid var(--editor-line);
+    background: var(--editor);
+  }
+  @media (max-width: 640px) {
+    .editor-grid {
+      grid-template-columns: 1fr;
+    }
+    .gutter {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { mountLineGutter } from '../lib/line-gutter';
+  mountLineGutter();
+</script>
