@@ -8,17 +8,14 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import { type AdminLink } from '../components/AdminNav';
 import { listRsvps } from '../db/rsvp';
-import { listSubmissions } from '../db/submission';
 
 interface Props {
   title: string;
   rsvpsCount?: number;
-  unreadSubmissionsCount?: number;
 }
-const { title, rsvpsCount: propRsvps, unreadSubmissionsCount: propUnreadSubmissions } = Astro.props;
+const { title, rsvpsCount: propRsvps } = Astro.props;
 
 const rsvpsCount = propRsvps ?? (await listRsvps()).length;
-const unreadSubmissionsCount = propUnreadSubmissions ?? (await listSubmissions()).filter((s) => !s.is_read).length;
 
 const current = Astro.url.pathname;
 const isActive = (href: string) => (href === '/admin' ? current === '/admin' : current.startsWith(href));
@@ -27,7 +24,6 @@ const links: AdminLink[] = [
   { href: '/admin', label: 'Dashboard', icon: 'dashboard', active: isActive('/admin') },
   { href: '/admin/events', label: 'Events', icon: 'events', active: isActive('/admin/events') },
   { href: '/admin/rsvps', label: 'RSVPs', icon: 'rsvps', count: rsvpsCount, active: isActive('/admin/rsvps') },
-  { href: '/admin/submissions', label: 'Submissions', icon: 'submissions', count: unreadSubmissionsCount, active: isActive('/admin/submissions') },
 ];
 
 // Inline icons keep the desktop sidebar server-rendered (no hydration).
@@ -35,7 +31,6 @@ const icons: Record<AdminLink['icon'], string> = {
   dashboard: 'M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-5H4z',
   events: 'M3 5h18v16H3zM3 9h18M8 3v4M16 3v4',
   rsvps: 'M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87',
-  submissions: 'M4 4h16v16H4zM4 7l8 6 8-6',
 };
 ---
 <!doctype html>
@@ -68,7 +63,7 @@ const icons: Record<AdminLink['icon'], string> = {
               </svg>
               {l.label}
               <span
-                id={l.icon === 'submissions' ? 'nav-submissions-count' : l.icon === 'rsvps' ? 'nav-rsvps-count' : undefined}
+                id={l.icon === 'rsvps' ? 'nav-rsvps-count' : undefined}
                 class:list={[
                   'ml-auto grid h-5 min-w-[22px] place-items-center rounded-full px-1.5 text-xs font-bold',
                   l.active ? 'bg-primary text-primary-foreground' : 'bg-black/[0.06] text-muted-foreground',
@@ -86,15 +81,6 @@ const icons: Record<AdminLink['icon'], string> = {
     </div>
 
     <script>
-      const submissionsBadge = document.getElementById('nav-submissions-count');
-      if (submissionsBadge) {
-        document.addEventListener('submissions:changed', () => {
-          const unread = document.querySelectorAll('tr[data-id][data-read="false"]').length;
-          submissionsBadge.textContent = String(unread);
-          submissionsBadge.classList.toggle('hidden', unread === 0);
-        });
-      }
-
       const rsvpsBadge = document.getElementById('nav-rsvps-count');
       if (rsvpsBadge) {
         document.addEventListener('rsvps:changed', () => {

@@ -1,14 +1,14 @@
 import type { APIRoute } from 'astro';
 import { validateSubmission, type SubmissionInput } from '../../lib/submission-validation';
 import { checkAbuse } from '../../lib/abuse-guard';
-import { insertSubmission } from '../../db/submission';
-import type { SubmissionType } from '../../db/schema';
+import type { SubmissionType } from '../../lib/submission-validation';
 
 export const prerender = false;
 
 const json = (body: unknown, status: number): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
+// Gatekeeper only: clears abuse checks and validation, then the browser sends the mail via Web3Forms.
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   let body: unknown;
   try {
@@ -20,39 +20,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const blocked = await checkAbuse({ body, endpoint: 'inquiry', clientAddress });
   if (blocked) return blocked;
 
-  const input = coerceInput(body);
-  const errors = validateSubmission(input);
+  const errors = validateSubmission(coerceInput(body));
   if (errors.length > 0) return json({ ok: false, errors }, 400);
 
-  try {
-    const web3Key = process.env.WEB3FORMS_ACCESS_KEY || import.meta.env.WEB3FORMS_ACCESS_KEY;
-    if (web3Key && web3Key !== 'TBD') {
-      await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          access_key: web3Key,
-          name: input.name,
-          email: input.email,
-          subject: `[MadCoders ${input.type}] Message from ${input.name}`,
-          message: input.message,
-        }),
-      });
-    }
-
-    try {
-      await insertSubmission(input);
-    } catch (e) {
-      // Gracefully continue if Web3Forms sent the message, otherwise rethrow for 500
-      if (!web3Key || web3Key === 'TBD') {
-        throw e;
-      }
-    }
-    return json({ ok: true }, 201);
-  } catch {
-    // Swallow the error detail — never log the submitted email (PII).
-    return json({ ok: false, code: 'server' }, 500);
-  }
+  return json({ ok: true }, 201);
 };
 
 // Missing/non-string fields become empty strings (type to '') so validateSubmission is the single gate.

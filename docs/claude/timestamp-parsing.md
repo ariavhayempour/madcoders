@@ -4,10 +4,11 @@
 `src/db/schema.ts` types every one of them as `string`. TypeScript believed the declaration, so
 `astro check` passed while production did something else.
 
-The dashboard hit it first: `src/pages/admin/index.astro` sorts recent submissions with
+The dashboard hit it first: `src/pages/admin/index.astro` sorted rows with
 `b.created_at.localeCompare(a.created_at)`. Against a `Date` that method does not exist, so the
 page threw `TypeError: b.created_at.localeCompare is not a function`, returned a 500, and rendered
-as a blank white page.
+as a blank white page. (That particular sort was on the since-removed submissions inbox; the
+driver contract it exposed still governs every timestamp column.)
 
 Tests did not catch it because every fixture hand-wrote `created_at` as an ISO **string**, matching
 the (wrong) declared type rather than the driver's real output.
@@ -51,8 +52,8 @@ column cannot reintroduce the bug.)
 - `tests/db/client.test.ts` — asserts that importing the client leaves all three OIDs decoding to
   strings. This guards the driver contract itself: if an upgrade renames a built-in OID or changes
   parser wiring, CI fails instead of production.
-- `tests/admin/index.test.ts` — renders the dashboard with submissions whose `created_at` is built
-  by calling the real `parseTimestamp`, so the fixture carries production's exact shape.
+- `tests/admin/index.test.ts` — renders the dashboard with rows whose `created_at` is built by
+  calling the real `parseTimestamp`, so the fixture carries production's exact shape.
 
 ## Rule for future fixtures
 

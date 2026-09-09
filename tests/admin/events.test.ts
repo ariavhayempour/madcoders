@@ -24,10 +24,9 @@ function postForm(fields: Record<string, string>, url = 'http://localhost/admin/
 
 const getReq = (url: string): Request => new Request(url, { method: 'GET' });
 
-// Load the index page with the rsvps/submissions DB helpers (read by the RSVP-count column and AdminLayout sidebar counts) replaced by spies.
+// Load the index page with the rsvps DB helper (read by the RSVP-count column and AdminLayout sidebar count) replaced by a spy.
 function mockChrome() {
   vi.doMock(src('db/rsvp'), () => ({ listRsvps: vi.fn(async () => []) }));
-  vi.doMock(src('db/submission'), () => ({ listSubmissions: vi.fn(async () => []) }));
 }
 
 async function loadIndex(
@@ -58,7 +57,6 @@ async function loadEdit(opts: { event?: EventRow | null; update?: (id: number, i
 afterEach(() => {
   vi.doUnmock(src('db/event'));
   vi.doUnmock(src('db/rsvp'));
-  vi.doUnmock(src('db/submission'));
   vi.resetModules();
 });
 

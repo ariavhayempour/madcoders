@@ -55,20 +55,18 @@ rather than mid-query.
 ## Schema
 
 DDL in `migrations/*.sql` is the **source of truth**; `src/db/schema.ts` hand-mirrors it as
-TypeScript row types and table/column name constants. `tests/db/schema.test.ts` parses the
-`submission_type` CHECK values out of the migration SQL and asserts they equal
-`SUBMISSION_TYPES`, so the two cannot drift.
+TypeScript row types and table/column name constants. `tests/db/schema.test.ts` parses CHECK
+values (e.g. RSVP `status`) out of the migration SQL and asserts they equal the corresponding
+constants, so the two cannot drift.
 
 `migrations/0001_init.sql`:
 
 - **`rsvps`** — `id, name, email, meeting, created_at`. `UNIQUE (email, meeting)` enforces
   the "one RSVP per email per meeting" rule (0008) at the database level. Index
   `rsvps_meeting_idx` on `meeting` for the admin group-by-meeting view (0012).
-- **`submissions`** — `id, name, email, submission_type, message, created_at`.
-  `submission_type` is a `TEXT` column with `CHECK (submission_type IN ('inquiry', 'join',
-  'digest'))` — a CHECK, not a Postgres `ENUM`, so adding a type later is a one-line
-  migration rather than a type alteration. Index `submissions_created_at_idx` on
-  `created_at DESC` for the admin inbox (0012).
+- **`submissions`** — `id, name, email, submission_type, message, created_at`. **Unused:** the
+  contact form no longer writes here (see `0009-submissions.md`); the table and its migrations
+  are left in place so no data is dropped. Removing it would need a new migration.
 - Email-format validation (e.g. `wisc.edu`) is deliberately **not** enforced in the
   database — that is an application concern for 0008/0010.
 
@@ -114,9 +112,9 @@ touch the database.
 
 ```
 src/db/client.ts        neon() HTTP client from DATABASE_URL (throws if unset) — request-path access
-src/db/schema.ts        RsvpRow, SubmissionRow, SubmissionType, SUBMISSION_TYPES, name constants
+src/db/schema.ts        RsvpRow, EventRow, RateLimitHitRow, RSVP_STATUSES, name constants
 migrations/0001_init.sql  rsvps + submissions (+ constraints, indexes)
 scripts/migrate.ts      forward-only migration runner (WebSocket Pool, transactional)
-scripts/db-check.ts     connectivity check (insert → read back → delete)
+scripts/db-check.ts     connectivity check against rsvps (insert → read back → delete)
 tests/db/               unit tests: schema sync, env guard, selectPending ordering, probe shape
 ```

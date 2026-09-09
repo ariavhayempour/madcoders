@@ -1,16 +1,14 @@
 ---
-// Snapshot dashboard — each category (Events, RSVPs, Submissions) has its own page; fresh SSR per request.
+// Snapshot dashboard — each category (Events, RSVPs) has its own page; fresh SSR per request.
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import PageHeader from '../../components/admin/PageHeader.astro';
 import StatCard from '../../components/admin/StatCard.astro';
 import Panel from '../../components/admin/Panel.astro';
-import Badge from '../../components/admin/Badge.astro';
 import { listRsvps } from '../../db/rsvp';
-import { listSubmissions } from '../../db/submission';
 import { listEvents } from '../../db/event';
 
-const [rsvps, submissions, events] = await Promise.all([listRsvps(), listSubmissions(), listEvents()]);
+const [rsvps, events] = await Promise.all([listRsvps(), listEvents()]);
 
 const today = new Date().toISOString().slice(0, 10);
 const upcoming = events.filter((e) => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
@@ -22,30 +20,25 @@ const counts = rsvps.reduce<Record<string, number>>((acc, r) => {
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
 const fmtDate = (iso: string) => dateFmt.format(new Date(iso));
-const fmtStamp = (iso: string) => new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-const recentSubs = [...submissions].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 5);
-const subLabel = { inquiry: 'Inquiry', join: 'Join the team', digest: 'New digest' } as const;
 
 const nextHint = upcoming[0] ? `Next ${fmtDate(upcoming[0].date)}` : 'None scheduled';
 
 const ICON = {
   events: 'M3 5h18v16H3zM3 9h18M8 3v4M16 3v4',
   rsvps: 'M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
-  submissions: 'M4 4h16v16H4zM4 7l8 6 8-6',
 };
 const now = new Date();
 const todayLabel = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 ---
-<AdminLayout title="Dashboard" rsvpsCount={rsvps.length} unreadSubmissionsCount={submissions.filter((s) => !s.is_read).length}>
+<AdminLayout title="Dashboard" rsvpsCount={rsvps.length}>
   <PageHeader title="Dashboard" subtitle={`A snapshot of club activity — ${todayLabel}.`} />
 
-  <div class="mb-8 grid gap-4 sm:grid-cols-3">
+  <div class="mb-8 grid gap-4 sm:grid-cols-2">
     <StatCard label="Upcoming meetings" value={upcoming.length} hint={nextHint} iconPath={ICON.events} href="/admin/events" />
     <StatCard label="Total RSVPs" value={rsvps.length} iconPath={ICON.rsvps} href="/admin/rsvps" />
-    <StatCard label="Submissions" value={submissions.length} iconPath={ICON.submissions} href="/admin/submissions" />
   </div>
 
-  <div class="grid gap-6 lg:grid-cols-2">
+  <div class="grid gap-6">
     <Panel title="Upcoming meetings">
       <a slot="action" href="/admin/events" class="text-sm font-semibold text-primary hover:underline">Manage events →</a>
       {upcoming.length === 0 ? (
@@ -63,26 +56,6 @@ const todayLabel = now.toLocaleDateString('en-US', { weekday: 'long', month: 'lo
               </div>
               <span class="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold text-muted-foreground">{counts[e.slug] ?? 0} RSVP</span>
               <a href={`/admin/events/${e.id}`} class="shrink-0 text-sm font-semibold text-muted-foreground hover:text-primary">Edit</a>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Panel>
-
-    <Panel title="Recent submissions">
-      <a slot="action" href="/admin/submissions" class="text-sm font-semibold text-primary hover:underline">View inbox →</a>
-      {recentSubs.length === 0 ? (
-        <p class="px-5 py-8 text-muted-foreground">No submissions yet.</p>
-      ) : (
-        <ul class="divide-y divide-border/50">
-          {recentSubs.map((s) => (
-            <li class="flex items-center gap-3 px-5 py-3.5">
-              <div class="min-w-0 flex-1">
-                <p class="truncate font-medium">{s.name}</p>
-                <p class="truncate text-sm text-muted-foreground">{s.email}</p>
-              </div>
-              <Badge variant={s.submission_type}>{subLabel[s.submission_type]}</Badge>
-              <span class="hidden shrink-0 text-xs text-muted-foreground sm:block">{fmtStamp(s.created_at)}</span>
             </li>
           ))}
         </ul>

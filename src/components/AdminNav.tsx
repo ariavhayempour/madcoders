@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Menu, LayoutDashboard, CalendarDays, Users, Inbox } from "lucide-react";
+import { useState } from "react";
+import { Menu, LayoutDashboard, CalendarDays, Users } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -14,7 +14,6 @@ const ICONS = {
   dashboard: LayoutDashboard,
   events: CalendarDays,
   rsvps: Users,
-  submissions: Inbox,
 } as const;
 
 export type AdminLink = {
@@ -27,18 +26,6 @@ export type AdminLink = {
 
 export default function AdminNav({ links }: { links: AdminLink[] }) {
   const [open, setOpen] = useState(false);
-  const [unreadSubmissions, setUnreadSubmissions] = useState<number | undefined>(
-    links.find((l) => l.icon === "submissions")?.count
-  );
-
-  // Kept in sync with the submissions inbox while it's open in the same tab.
-  useEffect(() => {
-    const handler = () => {
-      setUnreadSubmissions(document.querySelectorAll('tr[data-id][data-read="false"]').length);
-    };
-    document.addEventListener("submissions:changed", handler);
-    return () => document.removeEventListener("submissions:changed", handler);
-  }, []);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -58,7 +45,7 @@ export default function AdminNav({ links }: { links: AdminLink[] }) {
         <nav className="grid gap-1 px-3 pb-6">
           {links.map((l) => {
             const Icon = ICONS[l.icon];
-            const count = l.icon === "submissions" ? unreadSubmissions : l.count;
+            const count = l.count;
             return (
               <a
                 key={l.href}
