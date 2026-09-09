@@ -1,26 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { SUBMISSION_TYPES, RATE_LIMIT_COLUMNS, EVENT_COLUMNS, RSVP_STATUSES } from '../../src/db/schema';
+import { RATE_LIMIT_COLUMNS, EVENT_COLUMNS, RSVP_STATUSES } from '../../src/db/schema';
 
 const readMigration = (name: string): string =>
   readFileSync(fileURLToPath(new URL(`../../migrations/${name}`, import.meta.url)), 'utf8');
 
-const migration = readMigration('0001_init.sql');
 const rateLimitMigration = readMigration('0002_rate_limit.sql');
 const eventsMigration = readMigration('0003_events.sql');
 const rsvpStatusMigration = readMigration('0005_rsvp_status.sql');
 const slidingMigration = readMigration('0006_rate_limit_sliding.sql');
 
 describe('schema ↔ DDL sync', () => {
-  it('SUBMISSION_TYPES equals the submission_type CHECK values in the migration', () => {
-    const check = migration.match(/submission_type[\s\S]*?IN\s*\(([^)]*)\)/i);
-    expect(check, 'submission_type CHECK constraint not found in migration').not.toBeNull();
-
-    const checkValues = [...check![1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
-    expect(checkValues).toEqual([...SUBMISSION_TYPES]);
-  });
-
   it('RSVP_STATUSES equals the status CHECK values in the migration', () => {
     const check = rsvpStatusMigration.match(/status[\s\S]*?IN\s*\(([^)]*)\)/i);
     expect(check, 'status CHECK constraint not found in migration').not.toBeNull();

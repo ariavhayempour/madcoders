@@ -1,6 +1,8 @@
 ---
 import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE, MAX_MESSAGE_WORDS } from '../lib/limits';
-import type { SubmissionType } from '../db/schema';
+import type { SubmissionType } from '../lib/submission-validation';
+
+const web3FormsKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? '';
 
 const nameId = `inq-name`;
 const emailId = `inq-email`;
@@ -18,7 +20,7 @@ const { type } = Astro.props;
 
 const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 font-mono text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-cardinal focus-visible:ring-[3px] focus-visible:ring-cardinal/30 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
 ---
-<form class="inquiry mt-6 grid gap-4 rounded-lg border border-editor-line bg-editor-2 p-6 sm:p-8" method="post" action="/api/inquiry" novalidate data-inquiry>
+<form class="inquiry mt-6 grid gap-4 rounded-lg border border-editor-line bg-editor-2 p-6 sm:p-8" method="post" action="/api/inquiry" novalidate data-inquiry data-web3forms-key={web3FormsKey}>
   {type && <input type="hidden" name="type" value={type} />}
 
   <div class="grid gap-4 sm:grid-cols-2">
@@ -29,7 +31,7 @@ const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 f
     </div>
 
     <div class="grid gap-1.5">
-      <label for={emailId} class="font-mono text-xs font-medium text-editor-text-dim">Email (@wisc.edu)</label>
+      <label for={emailId} class="font-mono text-xs font-medium text-editor-text-dim">Email</label>
       <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={`h-10 ${field}`} />
       <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
     </div>
@@ -67,7 +69,7 @@ const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 f
   import { validateSubmission, countWords, type SubmissionField } from '../lib/submission-validation';
   import { MAX_MESSAGE_WORDS } from '../lib/limits';
   import { rateLimitMessage } from '../lib/rate-limit-message';
-  import type { SubmissionType } from '../db/schema';
+  import type { SubmissionType } from '../lib/submission-validation';
 
   type ApiError = { field: SubmissionField; message: string };
 
@@ -101,6 +103,29 @@ const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 f
   function firstInvalid(form: HTMLFormElement, errors: ApiError[]): void {
     const first = form.querySelector<HTMLElement>(`[name="${errors[0]?.field}"]`);
     first?.focus();
+  }
+
+  // Web3Forms only accepts browser-origin requests, so the send happens here rather than in the API route.
+  async function sendEmail(form: HTMLFormElement, input: { name: string; email: string; type: string; message: string }): Promise<boolean> {
+    const accessKey = form.dataset.web3formsKey ?? '';
+    if (!accessKey) return false;
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: input.name,
+          email: input.email,
+          subject: `[MadCoders ${input.type}] Message from ${input.name}`,
+          message: input.message,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { success?: boolean };
+      return data.success === true;
+    } catch {
+      return false;
+    }
   }
 
   function enhance(form: HTMLFormElement): void {
@@ -185,6 +210,11 @@ const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 f
           body: JSON.stringify({ ...input, company }),
         });
         if (res.status === 201) {
+          const delivered = await sendEmail(form, input);
+          if (!delivered) {
+            showStatus(form, "Couldn't send your message. Please email us directly or try again.", 'error');
+            return;
+          }
           form.reset();
           if (typeSelect) typeSelect.dispatchEvent(new Event('change'));
           messageInput?.dispatchEvent(new Event('input'));

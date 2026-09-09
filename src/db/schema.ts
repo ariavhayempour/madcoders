@@ -1,8 +1,5 @@
 // Hand-mirrors migrations/*.sql; tests/db/schema.test.ts guards the sync (docs/claude/0006-database.md).
 
-export const SUBMISSION_TYPES = ['inquiry', 'join', 'digest'] as const;
-export type SubmissionType = (typeof SUBMISSION_TYPES)[number];
-
 export const RSVP_STATUSES = ['pending', 'present', 'absent'] as const;
 export type RsvpStatus = (typeof RSVP_STATUSES)[number];
 
@@ -12,16 +9,6 @@ export interface RsvpRow {
   email: string;
   meeting: string;
   status: RsvpStatus;
-  created_at: string;
-}
-
-export interface SubmissionRow {
-  id: number;
-  name: string;
-  email: string;
-  submission_type: SubmissionType;
-  message: string;
-  is_read: boolean;
   created_at: string;
 }
 
@@ -44,7 +31,6 @@ export interface EventRow {
 
 export const TABLES = {
   rsvps: 'rsvps',
-  submissions: 'submissions',
   rateLimitHits: 'rate_limit_hits',
   events: 'events',
 } as const;
@@ -55,15 +41,6 @@ export const RSVP_COLUMNS = {
   email: 'email',
   meeting: 'meeting',
   status: 'status',
-  createdAt: 'created_at',
-} as const;
-
-export const SUBMISSION_COLUMNS = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  submissionType: 'submission_type',
-  message: 'message',
   createdAt: 'created_at',
 } as const;
 

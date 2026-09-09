@@ -1,7 +1,10 @@
 // Pure, browser-safe rules (no node:*/DB imports) shared by the client script and the API route.
 
-import { SUBMISSION_TYPES, type SubmissionType } from '../db/schema';
 import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE, MAX_MESSAGE_WORDS } from './limits';
+
+// Contact-form vocabulary; no longer a DB enum since submissions aren't stored.
+export const SUBMISSION_TYPES = ['inquiry', 'join', 'digest'] as const;
+export type SubmissionType = (typeof SUBMISSION_TYPES)[number];
 
 export interface SubmissionInput {
   name: string;
@@ -17,8 +20,8 @@ export interface SubmissionFieldError {
   message: string;
 }
 
-// Local part, then optional subdomains, then wisc.edu as the final domain.
-const WISC_EMAIL = /^[^\s@]+@([a-z0-9-]+\.)*wisc\.edu$/i;
+// Local part, @, then a dotted domain with a 2+ char TLD.
+const EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,}$/i;
 
 export function countWords(text: string): number {
   const trimmed = text.trim();
@@ -34,8 +37,8 @@ export function validateSubmission(input: SubmissionInput): SubmissionFieldError
     errors.push({ field: 'name', message: `Please keep your name under ${MAX_NAME} characters.` });
   }
 
-  if (!WISC_EMAIL.test(input.email.trim())) {
-    errors.push({ field: 'email', message: 'Please use your @wisc.edu email.' });
+  if (!EMAIL.test(input.email.trim())) {
+    errors.push({ field: 'email', message: 'Please enter a valid email address.' });
   } else if (input.email.trim().length > MAX_EMAIL) {
     errors.push({ field: 'email', message: `Please use an email under ${MAX_EMAIL} characters.` });
   }

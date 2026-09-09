@@ -8,15 +8,15 @@ import tailwindcss from '@tailwindcss/vite';
 // SSR on Vercel serverless — server output enables per-request rendering.
 export default defineConfig({
   // `site` gives SEO components an absolute base for canonical + Open Graph URLs.
-  site: 'https://www.badgerjournals.org',
+  site: 'https://www.madisoncoders.org',
 
   output: 'server',
 
   // Trusts the production host so /_image's self-fetch doesn't fall back to "localhost". See docs/claude/0015-image-allowed-domains.md
   security: {
     allowedDomains: [
-      { hostname: 'www.badgerjournals.org', protocol: 'https' },
-      { hostname: 'badgerjournals.org', protocol: 'https' },
+      { hostname: 'www.madisoncoders.org', protocol: 'https' },
+      { hostname: 'madisoncoders.org', protocol: 'https' },
     ],
   },
 

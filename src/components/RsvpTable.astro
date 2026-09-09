@@ -224,7 +224,7 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
     });
   });
 
-  // Mirrors the Submissions inbox Edit/Done toggle pattern in InquiryTable.astro.
+  // Row-level Edit/Done toggle: only one row stays in edit mode at a time.
   const editBtn = document.getElementById('edit-rsvps-btn');
   if (editBtn) {
     editBtn.addEventListener('click', () => {

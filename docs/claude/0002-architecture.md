@@ -9,9 +9,9 @@ directly-loadable URL.
 - `src/layouts/BaseLayout.astro` is the one shell every page uses. Props `{title,
   description, path}`. It renders the `<head>` (via `SEO`), `Header`, a `<main><slot/>`,
   and `Footer`.
-- `src/components/SEO.astro` emits `<title>{title} · Badger Journals</title>`, the meta
+- `src/components/SEO.astro` emits `<title>{title} · MadCoders</title>`, the meta
   description, Open Graph tags, and an **absolute** canonical/`og:url` built from
-  `Astro.site`. `site` is set in `astro.config.mjs` (`https://badger-journals.vercel.app`);
+  `Astro.site`. `site` is set in `astro.config.mjs` (`https://www.madisoncoders.org`);
   SEO also has an in-code fallback base so the value stays absolute when `Astro.site` is
   unset (e.g. the Vitest container runtime).
 

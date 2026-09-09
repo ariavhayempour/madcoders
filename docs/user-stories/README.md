@@ -1,6 +1,6 @@
-# Badger Journals — User Stories
+# MadCoders — User Stories
 
-Epic: **Re-platform Badger Journals to Astro + Vercel with RSVP and admin inbox backend.**
+Epic: **Re-platform MadCoders to Astro + Vercel with RSVP and admin inbox backend.**
 
 Rebuild the club's legacy single-file `index.html` as a componentized Astro (SSR via Vercel adapter) + React-islands app with a full UW-Madison brand redesign, real per-page URLs, a Postgres-backed RSVP + submission store, and an authenticated admin dashboard.
 

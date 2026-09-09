@@ -55,7 +55,6 @@ describe('isBotSubmission', () => {
 
 afterEach(() => {
   vi.doUnmock(src('db/rsvp'));
-  vi.doUnmock(src('db/submission'));
   vi.doUnmock(src('db/rate-limit'));
   vi.doUnmock(src('db/client'));
   vi.resetModules();
@@ -89,8 +88,6 @@ async function postInquiry(
   clientAddress: string | undefined = '1.2.3.4',
 ) {
   vi.resetModules();
-  const insertSubmission = vi.fn(async () => undefined);
-  vi.doMock(src('db/submission'), () => ({ insertSubmission }));
   const touchRateLimit = vi.fn(async (key: string) => touch(key));
   const hitRateLimit = vi.fn(async () => 1);
   vi.doMock(src('db/rate-limit'), () => ({ touchRateLimit, hitRateLimit }));
@@ -101,7 +98,7 @@ async function postInquiry(
     body: JSON.stringify(body),
   });
   const res = await POST({ request, clientAddress } as never);
-  return { res, insertSubmission, touchRateLimit };
+  return { res, touchRateLimit };
 }
 
 // --- Length caps (server-side authoritative) ---
@@ -186,18 +183,16 @@ describe('honeypot — POST /api/rsvp', () => {
 describe('honeypot — POST /api/inquiry', () => {
   const valid = { name: 'Bucky Badger', email: 'bucky@wisc.edu', type: 'inquiry', message: 'Hello there.' };
 
-  it('silently accepts a filled honeypot with 201 { ok: true } and does not insert', async () => {
-    const { res, insertSubmission } = await postInquiry({ ...valid, company: 'Acme' });
+  it('silently accepts a filled honeypot with 201 { ok: true }', async () => {
+    const { res } = await postInquiry({ ...valid, company: 'Acme' });
     expect(res.status).toBe(201);
     expect(res.headers.get('content-type')).toBe('application/json');
     expect(await res.json()).toEqual({ ok: true });
-    expect(insertSubmission).not.toHaveBeenCalled();
   });
 
   it('processes normally when the honeypot is empty', async () => {
-    const { res, insertSubmission } = await postInquiry({ ...valid, company: '' });
+    const { res } = await postInquiry({ ...valid, company: '' });
     expect(res.status).toBe(201);
-    expect(insertSubmission).toHaveBeenCalledWith(valid);
   });
 });
 
@@ -488,21 +483,19 @@ describe('rate limit — POST /api/inquiry', () => {
   const agoIso = (ms: number): string => new Date(Date.now() - ms).toISOString();
 
   it('blocks a second submission from the same ip inside the three-minute gap', async () => {
-    const { res, insertSubmission } = await postInquiry(valid, async (key) =>
+    const { res } = await postInquiry(valid, async (key) =>
       key.startsWith('inquiry:ip:') ? agoIso(30_000) : null,
     );
     expect(res.status).toBe(429);
-    expect(insertSubmission).not.toHaveBeenCalled();
   });
 
   it('blocks a repeat email even from a different ip, defeating ip rotation', async () => {
-    const { res, insertSubmission } = await postInquiry(
+    const { res } = await postInquiry(
       valid,
       async (key) => (key.startsWith('inquiry:email:') ? agoIso(30_000) : null),
       '9.9.9.9',
     );
     expect(res.status).toBe(429);
-    expect(insertSubmission).not.toHaveBeenCalled();
   });
 
   it('reports the remaining wait in seconds so the form can tell the user', async () => {
@@ -517,15 +510,13 @@ describe('rate limit — POST /api/inquiry', () => {
   });
 
   it('allows a submission once the gap has fully elapsed', async () => {
-    const { res, insertSubmission } = await postInquiry(valid, async () => agoIso(181_000));
+    const { res } = await postInquiry(valid, async () => agoIso(181_000));
     expect(res.status).toBe(201);
-    expect(insertSubmission).toHaveBeenCalled();
   });
 
   it('allows the first-ever submission from a fresh submitter', async () => {
-    const { res, insertSubmission } = await postInquiry(valid, async () => null);
+    const { res } = await postInquiry(valid, async () => null);
     expect(res.status).toBe(201);
-    expect(insertSubmission).toHaveBeenCalled();
   });
 
   it('checks both an ip bucket and an email bucket', async () => {
@@ -556,30 +547,27 @@ describe('rate limit — POST /api/inquiry', () => {
   });
 
   it('skips the limiter entirely when the honeypot is filled', async () => {
-    const { res, touchRateLimit, insertSubmission } = await postInquiry(
+    const { res, touchRateLimit } = await postInquiry(
       { ...valid, company: 'Acme' },
       async () => agoIso(1_000),
     );
     expect(res.status).toBe(201);
     expect(touchRateLimit).not.toHaveBeenCalled();
-    expect(insertSubmission).not.toHaveBeenCalled();
   });
 
   it('fails open when the limiter throws — the submission still succeeds', async () => {
-    const { res, insertSubmission } = await postInquiry(valid, async () => {
+    const { res } = await postInquiry(valid, async () => {
       throw new Error('db down');
     });
     expect(res.status).toBe(201);
-    expect(insertSubmission).toHaveBeenCalled();
   });
 
   it('still throttles by ip when the runtime supplies no client address', async () => {
-    const { res, insertSubmission } = await postInquiry(
+    const { res } = await postInquiry(
       valid,
       async (key) => (key.startsWith('inquiry:ip:') ? agoIso(30_000) : null),
       undefined,
     );
     expect(res.status).toBe(429);
-    expect(insertSubmission).not.toHaveBeenCalled();
   });
 });

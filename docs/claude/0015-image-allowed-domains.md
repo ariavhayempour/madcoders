@@ -3,7 +3,7 @@
 ## Symptom
 
 Every locally-imported `<Image>` (header logo, homepage hero) rendered as a broken image on
-`www.badgerjournals.org`. `GET /_image?...` returned `404 Not Found` for every request, with no
+`www.madisoncoders.org`. `GET /_image?...` returned `404 Not Found` for every request, with no
 thrown exception in runtime logs.
 
 ## Root cause
@@ -37,20 +37,20 @@ Confirmed by re-running Astro's own `validateHost`/`validateForwardedHeaders` ag
 ```js
 security: {
   allowedDomains: [
-    { hostname: 'www.badgerjournals.org', protocol: 'https' },
-    { hostname: 'badgerjournals.org', protocol: 'https' },
+    { hostname: 'www.madisoncoders.org', protocol: 'https' },
+    { hostname: 'madisoncoders.org', protocol: 'https' },
   ],
 },
 ```
 
 This lets Astro trust the real production host, so `url.origin` inside the `/_image` handler
-resolves to `https://www.badgerjournals.org` instead of `localhost`, and the self-fetch reaches
+resolves to `https://www.madisoncoders.org` instead of `localhost`, and the self-fetch reaches
 a real server.
 
 ## Scope note
 
 Only the production custom domains are allowlisted. Vercel's per-deployment preview URLs
-(`badger-journals-*-ariav-hayempours-projects.vercel.app`) are still not in the list — they're
+(`madcoders-*-ariav-hayempours-projects.vercel.app`) are still not in the list — they're
 also gated behind Vercel's own Deployment Protection (SSO wall) for this project, so image
 generation there was never the reported issue. If preview-URL image rendering becomes a
 requirement, add a scoped hostname pattern (e.g. `*.vercel.app` is too broad — prefer a pattern
