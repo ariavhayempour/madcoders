@@ -18,24 +18,66 @@ export const team: TeamGroup[] = [
   {
     title: 'Executive Board',
     members: [
-      { name: 'TBD', role: 'President & Founder', major: 'TBD', classOf: 'TBD' },
-      { name: 'TBD', role: 'Vice President', major: 'TBD', classOf: 'TBD' },
+      {
+        name: 'Usman Mohammed',
+        role: 'President',
+        major: 'Computer Science & Political Science',
+        classOf: 'Senior',
+      },
+      {
+        name: 'Jeremy Moore',
+        role: 'Vice President',
+        major: 'Economics & Mathematics',
+        classOf: 'Junior',
+      },
       { name: 'TBD', role: 'Treasurer', major: 'TBD', classOf: 'TBD' },
-      { name: 'TBD', role: 'Secretary', major: 'TBD', classOf: 'TBD' },
+      {
+        name: 'Aditya Pall',
+        role: 'Secretary',
+        major: 'Computer Science & Data Science',
+        classOf: 'Sophomore',
+      },
+      {
+        name: 'Daniela Luseko',
+        role: 'Social Chair',
+        major: 'Political Science & History, Consulting Certificate',
+        classOf: 'Senior',
+      },
     ],
   },
   {
     title: 'Technical Leadership',
     members: [
       { name: 'TBD', role: 'Tech Lead', major: 'TBD', classOf: 'TBD' },
-      { name: 'TBD', role: 'Project Lead', major: 'TBD', classOf: 'TBD' },
+      {
+        name: 'Sabrin Ali',
+        role: 'Project Management Chair',
+        major: 'Computer Science & Economics',
+        classOf: 'Sophomore',
+      },
     ],
   },
   {
     title: 'Outreach & Operations',
     members: [
-      { name: 'TBD', role: 'Outreach Chair', major: 'TBD', classOf: 'TBD' },
+      {
+        name: 'Bright Owusu-Ansah',
+        role: 'Outreach Chair',
+        major: 'Computer Science',
+        classOf: 'Sophomore',
+      },
       { name: 'TBD', role: 'Media Chair', major: 'TBD', classOf: 'TBD' },
+    ],
+  },
+  {
+    title: 'Advisors',
+    members: [
+      {
+        name: 'Wilfred Shereni',
+        role: 'Advisor',
+        major: 'Computer, Data & Information Sciences',
+        classOf: 'Senior',
+      },
     ],
   },
 ];
