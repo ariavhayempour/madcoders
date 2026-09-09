@@ -6,7 +6,7 @@ interface Props {
 }
 const { title, description, path } = Astro.props;
 // Fallback base keeps canonical/OG absolute even when Astro.site is unset (e.g. tests).
-const base = Astro.site ?? new URL('https://www.madcoders.org');
+const base = Astro.site ?? new URL('https://www.madisoncoders.org');
 const canonical = new URL(path, base).toString();
 const ogImage = new URL('/og.png', base).toString();
 ---
