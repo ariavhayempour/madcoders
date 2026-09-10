@@ -8,6 +8,13 @@ const initials = (name: string) =>
   name.split(/[\s&]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 
 const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+
+// Roster rows are the buffer's content lines; TBD seats are unfilled and stay out of the file.
+const groups = team.map((g) => ({
+  key: slug(g.title),
+  title: g.title,
+  members: g.members.filter((m) => m.name !== 'TBD'),
+}));
 ---
 <BaseLayout
   title="Our Team"
@@ -29,40 +36,62 @@ const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '_');
       </div>
 
       <div class="mx-auto max-w-4xl px-6 py-12">
-        {team.map((group) => (
-          <section class="mt-12 first:mt-0">
-            <h2 class="mb-4 font-mono text-[13px] font-semibold text-cardinal-700">"{slug(group.title)}": [</h2>
-            <ul class="grid list-none gap-4 p-0 pl-4 [grid-template-columns:repeat(auto-fill,minmax(15rem,1fr))]">
-              {group.members.filter((m) => m.name !== 'TBD').map((m) => (
-                <li class="rounded-lg border border-editor-line bg-editor-2 p-6 text-center transition-colors hover:border-ink-3">
-                  {m.photo ? (
-                    <Image class="mx-auto mb-4 size-20 rounded-full object-cover" style={{ objectPosition: m.photoPosition ?? 'center' }} src={m.photo} alt={m.name} width={200} height={200} loading="lazy" />
-                  ) : (
-                    <span class="mx-auto mb-4 grid size-20 place-items-center rounded-full border border-editor-line bg-cardinal-tint font-mono text-xl font-bold text-cardinal-700">{initials(m.name)}</span>
-                  )}
-                  <h3 class="text-lg font-semibold leading-tight text-foreground">{m.name}</h3>
-                  <p class="mt-1 font-mono text-sm font-semibold text-cardinal-700">{m.role}</p>
-                  <p class="font-mono text-xs text-editor-text-dim">{m.major}</p>
-                  <p class="font-mono text-xs text-editor-text-faint">{m.classOf}</p>
-                </li>
-              ))}
-            </ul>
-            <p class="mt-4 pl-4 font-mono text-[13px] text-cardinal-700">]</p>
-          </section>
-        ))}
-
-        <section class="mt-16 rounded-lg border border-editor-line bg-editor-2 p-8 sm:p-10">
-          <p class="mb-2 font-mono text-[11px] text-cardinal-700">// join.md</p>
-          <h2 class="text-2xl font-bold tracking-tight text-foreground">Join the team</h2>
-          <p class="mt-2 max-w-[60ch] text-lg text-editor-text-dim">
-            Want to lead, develop, or organize events for MadCoders? Tell us a bit about yourself.
-          </p>
-          <div class="mt-6">
-            <a href="/contact?type=join" class="inline-flex h-10 items-center justify-center rounded-md bg-cardinal px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-cardinal-700">
-              Contact us to join
-            </a>
+        <div class="roster overflow-hidden rounded-lg border border-editor-line bg-card">
+          <div class="flex items-center gap-4 border-b border-editor-line bg-editor-2 px-5 py-2.5 font-mono text-[12px] text-editor-text-dim">
+            <span class="font-semibold text-editor-text">team.json</span>
           </div>
-        </section>
+
+          <div class="py-4 font-mono text-[13px] leading-[1.6]">
+            <p class="px-5 text-editor-text-faint">{'{'}</p>
+
+            {groups.map((group, gi) => (
+              <section class="group-block">
+                <h2 class="px-5 pt-4 pb-1 pl-8">
+                  <span class="text-syn-key">"{group.key}"</span><span class="text-editor-text-faint">: [</span>
+                </h2>
+
+                <ul class="list-none p-0">
+                  {group.members.map((m, i) => (
+                    <li class="member grid grid-cols-[1.75rem_1fr] items-start gap-x-3 py-2 pr-5 pl-8 transition-colors hover:bg-editor-2">
+                      {m.photo ? (
+                        <Image
+                          class="mt-0.5 size-7 rounded-full object-cover ring-1 ring-editor-line"
+                          style={{ objectPosition: m.photoPosition ?? 'center' }}
+                          src={m.photo}
+                          alt={m.name}
+                          width={112}
+                          height={112}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span
+                          class="mt-0.5 grid size-7 place-items-center rounded-full bg-cardinal-tint text-[10px] font-bold text-cardinal-700 ring-1 ring-editor-line"
+                          aria-hidden="true"
+                        >{initials(m.name)}</span>
+                      )}
+
+                      <div class="min-w-0">
+                        <p class="flex flex-wrap items-baseline gap-x-2.5">
+                          <span class="text-editor-text-faint">{'{'}</span>
+                          <span class="font-sans text-[15px] font-semibold tracking-[-0.01em] text-foreground">{m.name}</span>
+                          <span class="text-syn-str">"{m.role}"</span>
+                        </p>
+                        <p class="flex flex-wrap items-baseline gap-x-2.5 text-[12px]">
+                          <span class="text-editor-text-dim">{m.major}</span>
+                          <span class="text-editor-text-faint">{'}'}{i < group.members.length - 1 ? ',' : ''}</span>
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <p class="px-5 pt-1 pl-8 text-editor-text-faint">]{gi < groups.length - 1 ? ',' : ''}</p>
+              </section>
+            ))}
+
+            <p class="px-5 pt-3 text-editor-text-faint">{'}'}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -77,6 +106,29 @@ const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '_');
     border-right: 1px solid var(--editor-line);
     background: var(--editor);
   }
+
+  /* Indent guide: the editor's nesting rule beside each array's rows. */
+  .group-block {
+    position: relative;
+  }
+  .group-block::before {
+    content: '';
+    position: absolute;
+    top: 2.1rem;
+    bottom: 1.5rem;
+    left: 1.55rem;
+    width: 1px;
+    background: var(--editor-line);
+  }
+
+  /* Hovering a row lights its indent rule cardinal, the way an editor marks the caret line. */
+  .member {
+    box-shadow: inset 1px 0 0 transparent;
+  }
+  .member:hover {
+    box-shadow: inset 1px 0 0 var(--cardinal);
+  }
+
   @media (max-width: 640px) {
     .editor-grid {
       grid-template-columns: 1fr;
