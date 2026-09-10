@@ -4,7 +4,6 @@ export interface Member {
   name: string;
   role: string;
   major: string;
-  classOf: string;
   photo?: ImageMetadata; // imported asset; falls back to a placeholder when unset
   photoPosition?: string; // CSS object-position for the cropped circle; defaults to center
 }
@@ -22,38 +21,38 @@ export const team: TeamGroup[] = [
         name: 'Usman Mohammed',
         role: 'President',
         major: 'Computer Science & Political Science',
-        classOf: 'Senior',
       },
       {
         name: 'Jeremy Moore',
         role: 'Vice President',
         major: 'Economics & Mathematics',
-        classOf: 'Junior',
       },
-      { name: 'TBD', role: 'Treasurer', major: 'TBD', classOf: 'TBD' },
+      { name: 'TBD', role: 'Treasurer', major: 'TBD' },
       {
         name: 'Aditya Pall',
         role: 'Secretary',
         major: 'Computer Science & Data Science',
-        classOf: 'Sophomore',
       },
       {
         name: 'Daniela Luseko',
         role: 'Social Chair',
         major: 'Political Science & History, Consulting Certificate',
-        classOf: 'Senior',
       },
     ],
   },
   {
     title: 'Technical Leadership',
     members: [
-      { name: 'TBD', role: 'Tech Lead', major: 'TBD', classOf: 'TBD' },
+      { name: 'TBD', role: 'Tech Lead', major: 'TBD' },
+      {
+        name: 'Ariav Hayempour',
+        role: 'Project Management Chair',
+        major: 'Computer & Data Science',
+      },
       {
         name: 'Sabrin Ali',
         role: 'Project Management Chair',
         major: 'Computer Science & Economics',
-        classOf: 'Sophomore',
       },
     ],
   },
@@ -64,9 +63,8 @@ export const team: TeamGroup[] = [
         name: 'Bright Owusu-Ansah',
         role: 'Outreach Chair',
         major: 'Computer Science',
-        classOf: 'Sophomore',
       },
-      { name: 'TBD', role: 'Media Chair', major: 'TBD', classOf: 'TBD' },
+      { name: 'TBD', role: 'Media Chair', major: 'TBD' },
     ],
   },
   {
@@ -76,7 +74,6 @@ export const team: TeamGroup[] = [
         name: 'Wilfred Shereni',
         role: 'Advisor',
         major: 'Computer, Data & Information Sciences',
-        classOf: 'Senior',
       },
     ],
   },

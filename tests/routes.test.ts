@@ -49,9 +49,12 @@ describe('contact page inquiry form', () => {
 });
 
 describe('team + create-next-digest contact links', () => {
-  it('team page links to contact form with type=join', async () => {
+  // The team page is roster-only; joining is reached from /contact, which still
+  // preselects the "Get Involved" inquiry type from ?type=join.
+  it('team page renders the roster without a join call-to-action', async () => {
     const html = await render(Team);
-    expect(html).toMatch(/href="\/contact\?type=join"/);
+    expect(html).not.toMatch(/href="\/contact\?type=join"/);
+    expect(html).toContain('executive_board');
   });
 
   it('create-next-digest page links to contact form with type=digest', async () => {
