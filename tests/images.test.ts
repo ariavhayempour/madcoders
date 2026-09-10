@@ -94,19 +94,29 @@ describe('T3 — wordmark in the editor tab bar', () => {
   });
 });
 
-describe('T5 — OG / social image + meta', () => {
-  it('ships the og image in public/', () => {
-    expect(readdirSync(publicDir)).toContain('og.png');
+describe('T5 — OG / social meta (no preview image)', () => {
+  it('ships no og image in public/', () => {
+    expect(readdirSync(publicDir)).not.toContain('og.png');
   });
 
-  it('emits absolute og:image and twitter:image plus a large-summary card', async () => {
+  it('emits no og:image or twitter:image, and a text-only summary card', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(SEO, {
       props: { title: 'Home', description: 'MadCoders.', path: '/' },
     });
-    expect(html).toMatch(/property=["']og:image["'][^>]*content=["']https?:\/\/[^"']+\/og\.png["']/);
-    expect(html).toMatch(/name=["']twitter:image["'][^>]*content=["']https?:\/\/[^"']+\/og\.png["']/);
-    expect(html).toMatch(/name=["']twitter:card["'][^>]*content=["']summary_large_image["']/);
+    expect(html).not.toMatch(/property=["']og:image["']/);
+    expect(html).not.toMatch(/name=["']twitter:image["']/);
+    expect(html).toMatch(/name=["']twitter:card["'][^>]*content=["']summary["']/);
+  });
+
+  it('still emits the text OG tags link previews rely on', async () => {
+    const container = await AstroContainer.create();
+    const html = await container.renderToString(SEO, {
+      props: { title: 'Home', description: 'MadCoders.', path: '/' },
+    });
+    expect(html).toMatch(/property=["']og:title["']/);
+    expect(html).toMatch(/property=["']og:description["']/);
+    expect(html).toMatch(/property=["']og:url["'][^>]*content=["']https?:\/\//);
   });
 });
 

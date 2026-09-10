@@ -51,7 +51,7 @@ See [`.env.example`](.env.example) for details. All secrets are currently set to
 | `PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key (TBD) |
 | `CLERK_SECRET_KEY` | Clerk secret key (TBD) |
 | `PUBLIC_CLERK_SIGN_IN_URL` | Canonical sign-in path — the embedded admin login (`/admin/login`) |
-| `WEB3FORMS_ACCESS_KEY` | Web3Forms access key for forwarding contact form submissions via email (TBD) |
+| `PUBLIC_WEB3FORMS_ACCESS_KEY` | Web3Forms access key for the contact form. `PUBLIC_` because the browser sends the mail; inlined at build time, so changing it requires a redeploy |
 
 ## Commands
 
