@@ -108,7 +108,11 @@ const field = 'w-full rounded-md border border-editor-line bg-editor px-3 py-2 f
   // Web3Forms only accepts browser-origin requests, so the send happens here rather than in the API route.
   async function sendEmail(form: HTMLFormElement, input: { name: string; email: string; type: string; message: string }): Promise<boolean> {
     const accessKey = form.dataset.web3formsKey ?? '';
-    if (!accessKey) return false;
+    // Distinguish a missing build-time key from a send failure; both surface the same UI message.
+    if (!accessKey) {
+      console.error('PUBLIC_WEB3FORMS_ACCESS_KEY is unset at build time — the contact form cannot send mail.');
+      return false;
+    }
     try {
       const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
