@@ -28,10 +28,9 @@ function textSources(): string[] {
 }
 
 describe('T1 — self-hosted image assets are staged', () => {
-  it('has campus.jpg, logo.jpg, and a placeholder avatar under src/assets/images/', () => {
+  it('has campus.jpg and a placeholder avatar under src/assets/images/', () => {
     const files = readdirSync(imagesDir);
     expect(files).toContain('campus.jpg');
-    expect(files).toContain('logo.jpg');
     const hasPlaceholder =
       files.includes('placeholder-avatar.jpg') ||
       files.includes('placeholder-avatar.png');
@@ -86,8 +85,7 @@ describe('T2 — IDE front-matter hero on the home page', () => {
 
 describe('T3 — wordmark in the editor tab bar', () => {
   // The IDE-window redesign replaced the photographic logo with a `{}` bracket
-  // mark matching the file-tree/editor icon language; logo.jpg is retained on
-  // disk but no longer referenced.
+  // mark matching the file-tree/editor icon language.
   it('renders the bracket mark and wordmark as the brand tab', () => {
     expect(header).toMatch(/\{'\{\}'\}/);
     expect(header).toMatch(/>\s*madcoders\s*<\/a>/);
