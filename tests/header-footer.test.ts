@@ -41,7 +41,7 @@ describe('branded Footer (Tailwind + tokens)', () => {
     const html = await container.renderToString(FooterCmp);
     expect(html).toContain('madcoders');
     expect(html).toContain('https://www.instagram.com/madcodersuw/');
-    expect(html).toContain('https://tr.ee/XVKPd2esAu');
+    expect(html).toContain('https://teams.cloud.microsoft/l/team/');
     expect(html).toContain('teams');
   });
 

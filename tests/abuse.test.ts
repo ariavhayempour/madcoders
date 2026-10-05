@@ -499,8 +499,10 @@ describe('rate limit — POST /api/inquiry', () => {
   });
 
   it('reports the remaining wait in seconds so the form can tell the user', async () => {
+    // Stamped before the request so the handler's clock can't read earlier than the hit.
+    const lastHit = agoIso(60_000);
     const { res } = await postInquiry(valid, async (key) =>
-      key.startsWith('inquiry:ip:') ? agoIso(60_000) : null,
+      key.startsWith('inquiry:ip:') ? lastHit : null,
     );
     const body = (await res.json()) as { ok: boolean; code: string; retryAfterSeconds: number };
     expect(body.ok).toBe(false);
